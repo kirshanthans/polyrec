@@ -576,8 +576,26 @@ def sm_fst(fst, in_dim, out_dim, in_dim_type, dim_strip, strip_size):
             if d is dim_strip:
                 continue
             if d < dim_strip:
-                tup_in  = ['e'] * in_dim
-                tup_out = ['e'] * out_dim
+                for j in xrange(in_dim_type[d]):
+                    tup_in  = ['e'] * in_dim
+                    tup_out = ['e'] * out_dim
+                    
+                    tup_in[d] = in_alp[d][j+1]
+                    tup_out[d] = out_alp[d][j+1]
+
+                    fst.add_transition(s, s, tuple(tup_in), tuple(tup_out))
+
+            if d > dim_strip:
+                for j in xrange(in_dim_type[d]):
+                    tup_in  = ['e'] * in_dim
+                    tup_out = ['e'] * out_dim
+                    
+                    tup_in[d] = in_alp[d][j+1]
+                    tup_out[d] = out_alp[d+1][j+1]
+
+                    fst.add_transition(s, s, tuple(tup_in), tuple(tup_out))
+
+    
 
 
 
