@@ -574,29 +574,70 @@ def sm_fst(fst, in_dim, out_dim, in_dim_type, dim_strip, strip_size):
     for s in xrange(0, n, out_dim+1):
         for d in xrange(in_dim):
             if d is dim_strip:
-                continue
-            if d < dim_strip:
+                #call statement of stripped dimensions
+                if (s+out_dim+1) < n:
+                    tup_in  = ['e'] * in_dim
+                    tup_out = ['e'] * out_dim
+                    
+                    tup_in[d]  = in_alp[d][1]
+                    tup_out[d+1] = out_alp[d+1][1]
+
+                    fst.add_transition(s, s+out_dim+1, tuple(tup_in), tuple(tup_out))
+
+            elif d < dim_strip:
+                #call statements non-stripped dimensions
                 for j in xrange(in_dim_type[d]):
                     tup_in  = ['e'] * in_dim
                     tup_out = ['e'] * out_dim
                     
-                    tup_in[d] = in_alp[d][j+1]
+                    tup_in[d]  = in_alp[d][j+1]
                     tup_out[d] = out_alp[d][j+1]
 
                     fst.add_transition(s, s, tuple(tup_in), tuple(tup_out))
 
-            if d > dim_strip:
+            elif d > dim_strip:
+                #call statements non-stripped dimensions
                 for j in xrange(in_dim_type[d]):
                     tup_in  = ['e'] * in_dim
                     tup_out = ['e'] * out_dim
                     
-                    tup_in[d] = in_alp[d][j+1]
-                    tup_out[d] = out_alp[d+1][j+1]
+                    tup_in[d]  = in_alp[d][j+1]
+                    tup_out[d+1] = out_alp[d+1][j+1]
 
                     fst.add_transition(s, s, tuple(tup_in), tuple(tup_out))
+        
+        #new dimension transfer call
+        tup_in  = ['e'] * in_dim
+        tup_out = ['e'] * out_dim
+        
+        tup_out[dim_strip] = out_alp[dim_strip][2]
+                    
+        fst.add_transition(s, s+1, tuple(tup_in), tuple(tup_out))
 
     
+    #call statement of new dimension
+    tup_in  = ['e'] * in_dim
+    tup_out = ['e'] * out_dim
+    
+    tup_out[dim_strip] = out_alp[dim_strip][1]
 
+    fst.add_transition(n-out_dim-1, 0, tuple(tup_in), tuple(tup_out))
+
+    for s in xrange(1, n, out_dim+1):
+        for i in xrange(out_dim-1):
+            for d in xrange(in_dim):
+                tup_in  = ['e'] * in_dim
+                tup_out = ['e'] * out_dim
+                if d is dim_strip:
+                    continue
+                elif d < dim_strip:
+                    tup_in[d]  = in_alp[d][in_dim_type[d]+1]
+                    tup_out[d] = out_alp[d][in_dim_type[d]+1]
+                elif d > dim_strip:
+                    tup_in[d]    = in_alp[d][in_dim_type[d]+1]
+                    tup_out[d+1] = out_alp[d+1][in_dim_type[d]+1]
+
+                fst.add_transition(s+i, s+i+1, tuple(tup_in), tuple(tup_out))
 
 
 def shift_dim(alp, odr, from_dim, to_dim):
@@ -625,8 +666,6 @@ def strip_mining(in_dim, out_dim, in_dim_type, in_alp, in_ord, dim_strip, strip_
     assert in_dim_type[dim_strip] == 1
     assert in_dim + 1 == out_dim
 
-    #print in_alp, in_ord
-
     n_states = (strip_size+1)*(out_dim+1)
     init = range(0, n_states, out_dim+1) + range(1, n_states, out_dim+1)
     init.sort()
@@ -653,8 +692,6 @@ def strip_mining(in_dim, out_dim, in_dim_type, in_alp, in_ord, dim_strip, strip_
         alp, odr = shift_dim(in_alp[i], in_ord[i], i, i+1)
         out_alp.append(alp)
         out_ord.append(odr)
-
-    #print out_alp, out_ord
 
     fst = MultiTapeFST(n_states, init, final, in_dim, out_dim, in_alp, out_alp, in_ord, out_ord)
     sm_fst(fst, in_dim, out_dim, in_dim_type, dim_strip, strip_size)
@@ -760,12 +797,12 @@ def sm_test():
     strip = 2
 
     fst = strip_mining(2, 3, in_dim_type, in_alp, in_ord, 0, strip)
-    # print "\nInput Program"
-    # prog_in = fst.project_in()
-    # prog_in.print_prog()
-    # print "\nOutput Program"
-    # prog_out = fst.project_out()
-    # prog_out.print_prog() 
+    print "\nInput Program"
+    prog_in = fst.project_in()
+    prog_in.print_prog()
+    print "\nOutput Program"
+    prog_out = fst.project_out()
+    prog_out.print_prog() 
 
 if __name__ == "__main__":
     sm_test()
