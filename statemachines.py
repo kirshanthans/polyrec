@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys, os
 
-class MultiTapeFSA():
+class MultiTapeFSA:
     def __init__(self, nstates, initstates, finalstates, dim, alphabet, order):
         
         for s in initstates:
@@ -137,7 +137,21 @@ class MultiTapeFSA():
             
         return new_fsa
 
-class MultiTapeFST():
+    @staticmethod
+    def refine_fsa(fsa):
+
+        n_prev_states = fsa.nstates
+        fsa_ = fsa.unreachable_removal()
+        n_curr_states = fsa_.nstates
+
+        while n_curr_states is not n_prev_states:
+            fsa_ = fsa_.unreachable_removal()
+            n_prev_states = n_curr_states
+            n_curr_states = fsa_.nstates
+
+        return fsa
+
+class MultiTapeFST:
     def __init__(self, nstates, initstates, finalstates, dimin, dimout, alphabetins, alphabetouts, orderins, orderouts):
         
         for s in initstates:
@@ -293,19 +307,6 @@ class MultiTapeFST():
                                         t1[2], t2[3])
 
         return fst_
-
-def refine_fsa(fsa):
-
-    n_prev_states = fsa.nstates
-    fsa_ = fsa.unreachable_removal()
-    n_curr_states = fsa_.nstates
-
-    while n_curr_states is not n_prev_states:
-        fsa_ = fsa_.unreachable_removal()
-        n_prev_states = n_curr_states
-        n_curr_states = fsa_.nstates
-    
-    return fsa
 
 def cm_fst(fst, dim, dim_type):
     """
@@ -623,22 +624,19 @@ def sm_fst(fst, in_dim, out_dim, in_dim_type, dim_strip, strip_size):
 
     fst.add_transition(n-out_dim-1, 0, tuple(tup_in), tuple(tup_out))
 
+    #existing transfer statements
     for s in xrange(1, n, out_dim+1):
-        for i in xrange(out_dim-1):
-            for d in xrange(in_dim):
-                tup_in  = ['e'] * in_dim
-                tup_out = ['e'] * out_dim
-                if d is dim_strip:
-                    continue
-                elif d < dim_strip:
-                    tup_in[d]  = in_alp[d][in_dim_type[d]+1]
-                    tup_out[d] = out_alp[d][in_dim_type[d]+1]
-                elif d > dim_strip:
-                    tup_in[d]    = in_alp[d][in_dim_type[d]+1]
-                    tup_out[d+1] = out_alp[d+1][in_dim_type[d]+1]
+        for d in xrange(in_dim):
+            tup_in  = ['e'] * in_dim
+            tup_out = ['e'] * out_dim
+            if d < dim_strip:
+                tup_in[d]  = in_alp[d][in_dim_type[d]+1]
+                tup_out[d] = out_alp[d][in_dim_type[d]+1]
+            elif d >= dim_strip:
+                tup_in[d]    = in_alp[d][in_dim_type[d]+1]
+                tup_out[d+1] = out_alp[d+1][in_dim_type[d]+1]
 
-                fst.add_transition(s+i, s+i+1, tuple(tup_in), tuple(tup_out))
-
+            fst.add_transition(s+d, s+d+1, tuple(tup_in), tuple(tup_out))
 
 def shift_dim(alp, odr, from_dim, to_dim):
     n_alp = ['e']
@@ -671,24 +669,23 @@ def strip_mining(in_dim, out_dim, in_dim_type, in_alp, in_ord, dim_strip, strip_
     init.sort()
     final = range(out_dim, n_states, out_dim+1)
     
-    out_alp = [alp for alp in in_alp[:dim_strip+1]]
-    out_ord = [odr for odr in in_ord[:dim_strip+1]]
+    out_alp = [alp for alp in in_alp[:dim_strip]]
+    out_ord = [odr for odr in in_ord[:dim_strip]]
     
-    new_dim_id = dim_strip + 2
-    new_dim_alp = ['e', 'r'+str(new_dim_id)]
+    new_dim_id = dim_strip + 1
+    new_dim_alp = ['e', 'r'+str(new_dim_id), 't'+str(new_dim_id)]
     new_dim_ord = ['e']
-    if dim_strip is not in_dim-1:
-        new_dim_alp.append('t'+str(new_dim_id))
+    if in_alp[dim_strip] != in_ord[dim_strip]:
         new_dim_ord.append('t'+str(new_dim_id))
+        new_dim_ord.append('r'+str(new_dim_id))
     else:
-        new_dim_alp += in_alp[-1][:in_dim_type[-1]+1]
-        new_dim_ord += in_alp[-1][:in_dim_type[-1]+1]
-    new_dim_ord.append('r'+str(new_dim_id))
+        new_dim_ord.append('r'+str(new_dim_id))
+        new_dim_ord.append('t'+str(new_dim_id))
 
     out_alp.append(new_dim_alp)
     out_ord.append(new_dim_ord)
 
-    for i in xrange(dim_strip+1, in_dim):
+    for i in xrange(dim_strip, in_dim):
         alp, odr = shift_dim(in_alp[i], in_ord[i], i, i+1)
         out_alp.append(alp)
         out_ord.append(odr)
@@ -784,7 +781,7 @@ def il_test():
     prog_out.print_prog()
 
 def sm_test():
-    print "Strip-Mining Test"
+    print "Strip-Mining Test1"
     # Dimensions
     in_dim  = 2
     out_dim = 3
@@ -793,16 +790,40 @@ def sm_test():
     # Input alphabet and order
     in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
     in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    # strip dimension 
+    strip_dim  = 0
     # strip size
-    strip = 2
+    strip_size = 2
 
-    fst = strip_mining(2, 3, in_dim_type, in_alp, in_ord, 0, strip)
+    fst = strip_mining(in_dim, out_dim, in_dim_type, in_alp, in_ord, strip_dim, strip_size)
     print "\nInput Program"
     prog_in = fst.project_in()
     prog_in.print_prog()
     print "\nOutput Program"
     prog_out = fst.project_out()
     prog_out.print_prog() 
+    
+    print "\nStrip-Mining Test2"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 3
+    # Type of dimensions
+    in_dim_type  = [2, 1]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1l', 'r1r', 't1'], ['e', 'r2', 's1']]
+    in_ord  = [['e', 'r1l', 'r1r', 't1'], ['e', 's1', 'r2']]
+    # strip dimension 
+    strip_dim  = 1
+    # strip size
+    strip_size = 2
+
+    fst = strip_mining(in_dim, out_dim, in_dim_type, in_alp, in_ord, strip_dim, strip_size)
+    print "\nInput Program"
+    prog_in = fst.project_in()
+    prog_in.print_prog()
+    print "\nOutput Program"
+    prog_out = fst.project_out()
+    prog_out.print_prog()
 
 if __name__ == "__main__":
     sm_test()
