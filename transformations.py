@@ -15,8 +15,8 @@ class Transformation:
         
         if self.name is 'cm':
             self.out_dim_type = kwargs.get('out_dim_type')
-            self.out_alp = kwargs.get('out_alp')
-            self.out_ord = kwargs.get('out_ord')
+            self.out_alp      = kwargs.get('out_alp')
+            self.out_ord      = kwargs.get('out_ord')
             
             self.fst = Transformation.code_motion(
                 in_dim       = self.in_dim,
@@ -29,24 +29,85 @@ class Transformation:
                 out_ord      = self.out_ord)
         
         elif self.name is 'ic':
-            
+            self.out_dim_type = kwargs.get('out_dim_type')
+            self.out_alp      = kwargs.get('out_alp')
+            self.out_ord      = kwargs.get('out_ord')
+            dim_i1            = kwargs.get('dim_i1')
+            dim_i2            = kwargs.get('dim_i2')
+
+            self.fst = Transformation.interchange(
+                in_dim       = self.in_dim,
+                out_dim      = self.out_dim,
+                in_dim_type  = self.in_dim_type,
+                out_dim_type = self.out_dim_type,
+                in_alp       = self.in_alp,
+                out_alp      = self.out_alp,
+                in_ord       = self.in_ord,
+                out_ord      = self.out_ord,
+                dim_i1       = dim_i1,
+                dim_i2       = dim_i2)
+        
         elif self.name is 'il':
-            pass
+            dim_inline  = kwargs.get('dim_inline')
+            call_inline = kwargs.get('call_inline')
+            label       = kwargs.get('label')
+
+            self.fst, self.out_dim_type, self.out_alp, self.out_ord = Transformation.inlining(
+                in_dim      = self.in_dim,
+                out_dim     = self.out_dim,
+                in_dim_type = self.in_dim_type,
+                in_alp      = self.in_alp,
+                in_ord      = self.in_ord,
+                dim_inline  = dim_inline,
+                call_inline = call_inline,
+                label       = label)
+        
         elif self.name is 'sm':
-            pass
+            dim_strip  = kwargs.get('dim_strip')
+            strip_size = kwargs.get('strip_size')
+            
+            self.fst, self.out_dim_type, self.out_alp, self.out_ord = Transformation.strip_mining(
+                in_dim      = self.in_dim,
+                out_dim     = self.out_dim,
+                in_dim_type = self.in_dim_type,
+                in_alp      = self.in_alp,
+                in_ord      = self.in_ord,
+                dim_strip   = dim_strip,
+                strip_size  = strip_size)
+        
         else:
-            assert False
+            self.out_dim_type = kwargs.get('out_dim_type')
+            self.out_alp      = kwargs.get('out_alp')
+            self.out_ord      = kwargs.get('out_ord')
+            self.fst          = kwargs.get('fst')
     
     def input_program(self):
         print "\nInput Program"
-        self.fst.project_in().print_fsa()
+        self.fst.project_in().print_prog()
     
     def output_program(self):
         print "\nOutput Program"
-        self.fst.project_out().print_fsa()
+        self.fst.project_out().print_prog()
 
     def compose(self, xform):
-        pass
+        assert self.out_dim == xform.in_dim
+        assert self.out_dim_type = xform.in_dim_type
+        assert self.out_alp == xform.in_alp 
+        assert self.out_ord == xform.in_ord
+
+        comp_xform = Transformation(
+            name         = self.name + '-' + xform.name,
+            in_dim       = self.in_dim,
+            out_dim      = xform.out_dim,
+            in_dim_type  = self.in_dim_type,
+            out_dim_type = xform.out_dim_type,
+            in_alp       = self.in_alp,
+            out_alp      = xform.out_alp,
+            in_ord       = self.in_ord,
+            out_ord      = xform.out_ord,
+            fst          = self.fst.compose_fst(xform.fst))
+
+        return comp_xform
 
     @staticmethod
     def cm_fst(fst, dim, dim_type):
@@ -303,7 +364,7 @@ class Transformation:
                 n_o = str(o)
             n_odr.append(n_o)
 
-        return n_alp, n_od
+        return n_alp, n_odr
 
     @staticmethod
     def code_motion(in_dim, out_dim, in_dim_type, out_dim_type, in_alp, out_alp, in_ord, out_ord):
@@ -404,13 +465,16 @@ class Transformation:
 
         Transformation.il_fst(fst, dim, in_dim_type, out_dim_type, dim_inline, il_call_label, il_d_in_call_labels, new_call_labels, stmt_label, il_d_out_stmt_labels)
 
-        return fst
+        return fst, out_dim_type, out_alp, out_ord
     
     @staticmethod
     def strip_mining(in_dim, out_dim, in_dim_type, in_alp, in_ord, dim_strip, strip_size):
 
         assert in_dim_type[dim_strip] == 1
         assert in_dim + 1 == out_dim
+
+        out_dim_type = list(in_dim_type)
+        out_dim_type.insert(dim_strip, 1)
 
         n_states = (strip_size+1)*(out_dim+1)
         init = range(0, n_states, out_dim+1) + range(1, n_states, out_dim+1)
@@ -441,7 +505,7 @@ class Transformation:
         fst = MultiTapeFST(n_states, init, final, in_dim, out_dim, in_alp, out_alp, in_ord, out_ord)
         Transformation.sm_fst(fst, in_dim, out_dim, in_dim_type, dim_strip, strip_size)
 
-        return fst
+        return fst, out_dim_type, out_alp, out_ord
 
 def cm_test():
     print "Code Motion Test"
@@ -472,5 +536,145 @@ def cm_test():
     xform.input_program()
     xform.output_program()   
 
+def ic_test():
+    print "Interchange Test"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 2
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    out_dim_type = [2, 1]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+    # Output alphabet and order
+    out_alp = [['e', 'r1l', 'r1r', 't1'], ['e', 'r2', 's1']]
+    out_ord = [['e', 't1', 'r1l', 'r1r'], ['e', 's1', 'r2']]
+
+    xform = Transformation(
+        name         ='ic',
+        in_dim       = in_dim,
+        out_dim      = out_dim,
+        in_dim_type  = in_dim_type,
+        out_dim_type = out_dim_type,
+        in_alp       = in_alp,
+        in_ord       = in_ord,
+        out_alp      = out_alp,
+        out_ord      = out_ord,
+        dim_i1       = 0,
+        dim_i2       = 1)
+
+    xform.input_program()
+    xform.output_program()  
+
+def il_test():
+    print "Inlining Test"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 2
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+
+    xform1 = Transformation(
+        name        = 'il',
+        in_dim      = in_dim,
+        out_dim     = out_dim,
+        in_dim_type = in_dim_type,
+        in_alp      = in_alp,
+        in_ord      = in_ord,
+        dim_inline  = 1,
+        call_inline = 1,
+        label       = 'l')
+
+    xform1.input_program()
+    xform1.output_program()
+    
+    xform2 = Transformation(
+        name        = 'il',
+        in_dim      = in_dim,
+        out_dim     = out_dim,
+        in_dim_type = in_dim_type,
+        in_alp      = in_alp,
+        in_ord      = in_ord,
+        dim_inline  = 1,
+        call_inline = 2,
+        label       = 'r')
+
+    xform2.input_program()
+    xform2.output_program()
+    
+    xform3 = Transformation(
+        name        = 'il',
+        in_dim      = in_dim,
+        out_dim     = out_dim,
+        in_dim_type = in_dim_type,
+        in_alp      = in_alp,
+        in_ord      = in_ord,
+        dim_inline  = 0,
+        call_inline = 1,
+        label       = 'n')
+
+    xform3.input_program()
+    xform3.output_program()
+
+def sm_test():
+    print "Strip-Mining Test1"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 3
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    # strip dimension 
+    strip_dim  = 0
+    # strip size
+    strip_size = 2
+
+    xform1 = Transformation(
+        name        = 'sm',
+        in_dim      = in_dim, 
+        out_dim     = out_dim, 
+        in_dim_type = in_dim_type, 
+        in_alp      = in_alp, 
+        in_ord      = in_ord, 
+        dim_strip   = strip_dim, 
+        strip_size  = strip_size)
+
+    xform1.input_program()
+    xform1.output_program()
+ 
+    
+    print "\nStrip-Mining Test2"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 3
+    # Type of dimensions
+    in_dim_type  = [2, 1]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1l', 'r1r', 't1'], ['e', 'r2', 's1']]
+    in_ord  = [['e', 'r1l', 'r1r', 't1'], ['e', 's1', 'r2']]
+    # strip dimension 
+    strip_dim  = 1
+    # strip size
+    strip_size = 2
+    
+    xform2 = Transformation(
+        name        = 'sm',
+        in_dim      = in_dim, 
+        out_dim     = out_dim, 
+        in_dim_type = in_dim_type, 
+        in_alp      = in_alp, 
+        in_ord      = in_ord, 
+        dim_strip   = strip_dim, 
+        strip_size  = strip_size)
+
+    xform2.input_program()
+    xform2.output_program()
+
 if __name__ == "__main__":
-    cm_test()
+    sm_test()
