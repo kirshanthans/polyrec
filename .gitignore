@@ -9,3 +9,4 @@ READEME.txt
 .vscode/ipch/4445622d61781cd0/mmap_address.bin
 utils.py
 codegen.py
+*.pyc

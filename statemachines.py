@@ -694,6 +694,7 @@ def strip_mining(in_dim, out_dim, in_dim_type, in_alp, in_ord, dim_strip, strip_
     sm_fst(fst, in_dim, out_dim, in_dim_type, dim_strip, strip_size)
     
     return fst
+
 # On each dimension alphabet is organized as
 # <epsilon - calls - transfer or compute statement>
 # Label 'e' is reserved for epsilon
