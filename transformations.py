@@ -11,7 +11,7 @@ class Transformation:
         self.in_alp      = kwargs.get('in_alp')
         self.in_ord      = kwargs.get('in_ord')
         
-        if self.name is 'cm':
+        if self.name == 'cm':
             self.out_ord      = kwargs.get('out_ord')
             
             self.fst, self.out_dim_type, self.out_alp = Transformation.code_motion(
@@ -22,7 +22,7 @@ class Transformation:
                 in_ord       = self.in_ord,
                 out_ord      = self.out_ord)
         
-        elif self.name is 'ic':
+        elif self.name == 'ic':
             dim_i1            = kwargs.get('dim_i1')
             dim_i2            = kwargs.get('dim_i2')
 
@@ -35,7 +35,7 @@ class Transformation:
                 dim_i1       = dim_i1,
                 dim_i2       = dim_i2)
         
-        elif self.name is 'il':
+        elif self.name == 'il':
             dim_inline  = kwargs.get('dim_inline')
             call_inline = kwargs.get('call_inline')
             label       = kwargs.get('label')
@@ -50,7 +50,7 @@ class Transformation:
                 call_inline = call_inline,
                 label       = label)
         
-        elif self.name is 'sm':
+        elif self.name == 'sm':
             dim_strip  = kwargs.get('dim_strip')
             strip_size = kwargs.get('strip_size')
             
