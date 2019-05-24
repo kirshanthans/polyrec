@@ -148,7 +148,7 @@ class Transformation:
         assert len(in_alph) == len(out_alph)
 
         for i in xrange(dim):
-            if i is not dim_i1 or i is not dim_i2:
+            if i != dim_i1 or i != dim_i2:
                 for j in xrange(in_dim_type[i]):
                     tup_in  = ['e'] * dim 
                     tup_out = ['e'] * dim
@@ -207,7 +207,7 @@ class Transformation:
         out_alph = fst.alphabet_out
 
         for i in xrange(dim):
-            if i is not dim_inline:
+            if i != dim_inline:
                 for j in xrange(in_dim_type[i]):
                     tup_in  = ['e'] * dim 
                     tup_out = ['e'] * dim
@@ -219,7 +219,7 @@ class Transformation:
                     fst.add_transition(dim+1, dim+1, tuple(tup_in), tuple(tup_out))
     
         for i in xrange(dim):
-            if i is not dim_inline:
+            if i != dim_inline:
                 tup_in  = ['e'] * dim 
                 tup_out = ['e'] * dim
 
@@ -269,7 +269,7 @@ class Transformation:
 
         for s in xrange(0, n, out_dim+1):
             for d in xrange(in_dim):
-                if d is dim_strip:
+                if d == dim_strip:
                     #call statement of stripped dimensions
                     if (s+out_dim+1) < n:
                         tup_in  = ['e'] * in_dim
@@ -339,14 +339,14 @@ class Transformation:
 
         to_dim_id = to_dim + 1
         for a in alp[1:]:
-            if a[0] is not 's':
+            if a[0] != 's':
                 n_a = a[0] + str(to_dim_id) + a[2:]
             else:
                 n_a = str(a)
             n_alp.append(n_a)
 
         for o in odr[1:]:
-            if o[0] is not 's':
+            if o[0] != 's':
                 n_o = o[0] + str(to_dim_id) + o[2:]
             else:
                 n_o = str(o)
@@ -439,7 +439,7 @@ class Transformation:
         # label of the call getting inlined
         il_call_label = in_alp[dim_inline][call_inline]
         # all other call labels
-        other_call_labels = [l for l in il_d_in_call_labels if l is not il_call_label]
+        other_call_labels = [l for l in il_d_in_call_labels if l != il_call_label]
         # label of compute statements
         stmt_label  = in_alp[dim_inline][1+ncalls]
 
@@ -454,7 +454,7 @@ class Transformation:
         # output alphabet
         out_alp = []
         for i in xrange(dim):
-            if i is not dim_inline:
+            if i != dim_inline:
                 out_alp.append(in_alp[i])
             else:
                 out_alp.append(il_d_alp)
@@ -464,7 +464,7 @@ class Transformation:
         # output order of the dim getting inlined
         il_d_ord = []
         for l in in_ord[dim_inline]:
-            if l is not il_call_label:
+            if l != il_call_label:
                 il_d_ord.append(l)
             else:
                 il_d_ord += il_d_call_label_rep
@@ -472,7 +472,7 @@ class Transformation:
         # output order
         out_ord = []
         for i in xrange(dim):
-            if i is not dim_inline:
+            if i != dim_inline:
                 out_ord.append(in_alp[i])
             else:
                 out_ord.append(il_d_ord)
@@ -629,6 +629,54 @@ def il_test():
 
     xform3.input_program()
     xform3.output_program()
+    
+    print "Inlining Test4"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 2
+    # Type of dimensions
+    in_dim_type  = [2, 1]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1l', 'r1r', 't1'], ['e', 'r2', 's1']]
+    in_ord  = [['e', 'r1l', 'r1r', 't1'], ['e', 's1', 'r2']]
+
+    xform4 = Transformation(
+        name        = 'il',
+        in_dim      = in_dim,
+        out_dim     = out_dim,
+        in_dim_type = in_dim_type,
+        in_alp      = in_alp,
+        in_ord      = in_ord,
+        dim_inline  = 0,
+        call_inline = 1,
+        label       = 'l')
+
+    xform4.input_program()
+    xform4.output_program()
+    
+    print "Inlining Test5"
+    # Dimensions
+    in_dim  = 3
+    out_dim = 3
+    # Type of dimensions
+    in_dim_type  = [1, 2, 1]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 't2'], ['e', 'r3', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 't2'], ['e', 's1', 'r3']]
+
+    xform5 = Transformation(
+        name        = 'il',
+        in_dim      = in_dim,
+        out_dim     = out_dim,
+        in_dim_type = in_dim_type,
+        in_alp      = in_alp,
+        in_ord      = in_ord,
+        dim_inline  = 1,
+        call_inline = 1,
+        label       = 'l')
+
+    xform5.input_program()
+    xform5.output_program()
 
 def sm_test():
     print "Strip-Mining Test1"
@@ -699,13 +747,13 @@ def composition_test():
     ord2  = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
 
     xform1 = Transformation(
-        name    = 'cm',
-        in_dim  = dim,
-        out_dim = dim,
+        name         = 'cm',
+        in_dim       = dim,
+        out_dim      = dim,
         in_dim_type  = dim_type,
-        in_alp  = alp1,
-        in_ord  = ord1,
-        out_ord = ord2)
+        in_alp       = alp1,
+        in_ord       = ord1,
+        out_ord      = ord2)
 
     # Strip Mining
     strip_dim  = 0
@@ -736,9 +784,9 @@ def composition_test():
         dim_i2       = dim2_)
 
     # Inline
-    dim_il   = 2
+    dim_il   = 1
     call_il  = 1
-    label_il = 'n'
+    label_il = 'l'
     
     xform4 = Transformation(
         name        = 'il',
@@ -754,11 +802,12 @@ def composition_test():
     xform = xform1.compose(xform2).compose(xform3).compose(xform4)
 
     xform.input_program()
+    print "\nTransformation: ", xform.name
     xform.output_program()
 
 if __name__ == "__main__":
-    #cm_test()
-    #ic_test()
+    cm_test()
+    ic_test()
     il_test()
-    #sm_test()
-    #composition_test()
+    sm_test()
+    composition_test()
