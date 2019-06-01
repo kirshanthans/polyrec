@@ -36,7 +36,26 @@ class MultiTapeFSA:
             fsa.add_transition(s, e, tup) 
 
         return fsa
-   
+    
+    def add_transition(self, start, end, tup):
+
+        assert len(tup) == self.dims
+
+        for dim in range(self.dims):
+            assert tup[dim] in self.alphabet[dim]
+
+        self.transitions.add((start, end, tup))
+
+        if start in self.edges:
+            self.edges[start].append((end, tup))
+        else:
+            self.edges[start] = [(end, tup)] 
+        
+        if end in self.edges_in:
+            self.edges_in[end].append((start, tup))
+        else:
+            self.edges_in[end] = [(start, tup)]  
+    
     def print_fsa(self):
         
             print "nstates ", self.nstates
@@ -83,25 +102,6 @@ class MultiTapeFSA:
             print "Dim ", i
             for label in self.order[i][1:]:
                 print "\t", label
-
-    def add_transition(self, start, end, tup):
-
-        assert len(tup) == self.dims
-
-        for dim in range(self.dims):
-            assert tup[dim] in self.alphabet[dim]
-
-        self.transitions.add((start, end, tup))
-
-        if start in self.edges:
-            self.edges[start].append((end, tup))
-        else:
-            self.edges[start] = [(end, tup)] 
-        
-        if end in self.edges_in:
-            self.edges_in[end].append((start, tup))
-        else:
-            self.edges_in[end] = [(start, tup)]
 
     def identity_fst(self):
 
@@ -202,7 +202,16 @@ class MultiTapeFST:
             self.edges[start].append((end, tuplein, tupleout))
         else:
             self.edges[start] = [(end, tuplein, tupleout)]
+    
+    def copy(self):
 
+        fst = MultiTapeFST(self.nstates, self.init_states, self.final_states, self.dims_in, self.dims_out, self.alphabet_in, self.alphabet_out, self.ord_in, self.ord_out)
+
+        for s, e, tup_in, tup_out in self.transitions:
+            fst.add_transition(s, e, tup) 
+
+        return fst
+    
     def print_fst(self):
         
         print "nstates ", self.nstates
