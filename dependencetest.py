@@ -155,7 +155,12 @@ class Dependence:
         self.suffix2 = suffix2
 
     def test(self, xform):
-        return is_safe(self.suffix1, self.suffix2, xform.fst)
+        dep_fsa1 = self.suffix1.identity_fst().compose_fst(xform.fst) # constructing the dependence fsa for suffix 1
+        dep_fsa2 = self.suffix2.identity_fst().compose_fst(xform.fst) # constructing the dependence fsa for suffix 2
+
+        dep_path1 = Path(dep_fsa1)
+        dep_path2 = Path(dep_fsa2)
+
 
     @staticmethod
     def is_safe(witness_fsa1, witness_fsa2, fst_xform):
