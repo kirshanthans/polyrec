@@ -208,7 +208,7 @@ class MultiTapeFST:
         fst = MultiTapeFST(self.nstates, self.init_states, self.final_states, self.dims_in, self.dims_out, self.alphabet_in, self.alphabet_out, self.ord_in, self.ord_out)
 
         for s, e, tup_in, tup_out in self.transitions:
-            fst.add_transition(s, e, tup) 
+            fst.add_transition(s, e, tup_in, tup_out) 
 
         return fst
     

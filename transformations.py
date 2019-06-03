@@ -473,7 +473,7 @@ class Transformation:
         out_ord = []
         for i in xrange(dim):
             if i != dim_inline:
-                out_ord.append(in_alp[i])
+                out_ord.append(in_ord[i])
             else:
                 out_ord.append(il_d_ord)
 
