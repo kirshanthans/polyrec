@@ -11,7 +11,7 @@ class Path:
         self.mul_path    = None  # path as a list of tuples (label, dimension)
         self.cycle_path  = None  # part of mul_path that recurs
         self.state_chain = None  # chain of states
-        self.recur       = False # True if the path does not end in a final state
+        self.recur       = None  # True if the path does not end in a final state
         self.cycle_path  = None  # cyclic part of the path (beta in alpha(beta)*)
         self.dictionary  = None  # a list of dictionaries for each dimension key: label value: rank
         self.flat_dict   = None  # a dictionary key: label value: rank (in a total program order)
@@ -74,7 +74,10 @@ class Path:
         curr_state = init_state # initializing current stage
 
         while curr_state not in self.state_chain and curr_state not in self.fsa.final_states:
-
+            
+            if curr_state not in self.fsa.edges:
+                return False
+            # escaping the null transitions
             if len(self.fsa.edges[curr_state]) == 1 and self.fsa.edges[curr_state][0][1] == tuple(['e']*dims):
                 self.state_chain.append(curr_state)
                 curr_state = self.fsa.edges[curr_state][0][0]
@@ -98,6 +101,8 @@ class Path:
             if self.state_chain[i] == curr_state:
                 self.cycle_path = self.mul_path[i:]
                 break
+        
+        return True
 
     def find_edge_earliest(self, curr_state):
         # finding the earliest edge from a given state
@@ -136,6 +141,8 @@ class Path:
         curr_state = init_state # initializing current state
 
         while curr_state not in self.state_chain and curr_state not in self.fsa.final_states:
+            if curr_state not in self.fsa.edges:
+                return False
             # escaping the null transitions
             if len(self.fsa.edges[curr_state]) == 1 and self.fsa.edges[curr_state][0][1] == tuple(['e']*dims):
                 self.state_chain.append(curr_state)
@@ -160,6 +167,8 @@ class Path:
             if self.state_chain[i] == curr_state:
                 self.cycle_path = self.mul_path[i:]
                 break
+        
+        return True
 
     def extend_path(self, times):
         assert self.recur == True
@@ -180,24 +189,28 @@ class Dependence:
         dep_fst1 = self.suffix1.identity_fst() # constructing the dependence fst for suffix 1
         dep_fst2 = self.suffix2.identity_fst() # constructing the dependence fst for suffix 2
 
-        dep_fsa1 = MultiTapeFSA.refine_fsa(dep_fst1.compose_fst(xform.fst).project_out())
-        dep_fsa2 = MultiTapeFSA.refine_fsa(dep_fst2.compose_fst(xform.fst).project_out())
-        
+        dep_fsa1 = dep_fst1.compose_fst(xform.fst).project_out()
+        dep_fsa2 = dep_fst2.compose_fst(xform.fst).project_out()
+
         path1 = Path(dep_fsa1)
         path2 = Path(dep_fsa2)
-        
+
         path1.gdict() # computing dictionaries
         path2.gdict() # computing dictionaries
         
         assert path1.dictionary == path2.dictionary
         assert path1.flat_dict  == path2.flat_dict
         assert path1.pg_ord     == path2.pg_ord
+
         
         for s1 in path1.fsa.init_states:
             for s2 in path2.fsa.init_states:
+                
+                status1 = path1.latest_path(s1)
+                status2 = path2.earliest_path(s2)
 
-                path1.latest_path(s1)
-                path2.earliest_path(s2)
+                if not status1 or not status2:
+                    continue
 
                 t_val = Dependence.dim_test(path1.path, path2.path, path1.dictionary)
                 if t_val == False:
@@ -230,9 +243,69 @@ class Dependence:
             return False 
         return Dependence.ord_test(late_path[1:], early_path[1:], dict_alph)
 
+def deptest_cm():   
+    print "Code Motion Test"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 2
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    # Output order
+    out_ord = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
 
-def deptest_example():
-    print "Inlining Test1"
+    xform = Transformation(
+        name         ='cm',
+        in_dim       = in_dim,
+        out_dim      = out_dim,
+        in_dim_type  = in_dim_type,
+        in_alp       = in_alp,
+        in_ord       = in_ord,
+        out_ord      = out_ord)
+
+    suffix1 = MultiTapeFSA(in_dim+1, [0], [in_dim],   2, in_alp, in_ord)
+    Witness.suffix_fsa0(suffix1)
+    suffix2 = MultiTapeFSA(in_dim+2, [0], [in_dim+1], 2, in_alp, in_ord)
+    Witness.suffix_fsa1(suffix2)
+
+    Dep = Dependence(None, suffix1, suffix2)
+
+    print Dep.test(xform)
+ 
+def deptest_ic():
+    print "Interchange Test"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 2
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+
+    xform = Transformation(
+        name         ='ic',
+        in_dim       = in_dim,
+        out_dim      = out_dim,
+        in_dim_type  = in_dim_type,
+        in_alp       = in_alp,
+        in_ord       = in_ord,
+        dim_i1       = 0,
+        dim_i2       = 1)
+    
+    suffix1 = MultiTapeFSA(in_dim+1, [0], [in_dim],   2, in_alp, in_ord)
+    Witness.suffix_fsa0(suffix1)
+    suffix2 = MultiTapeFSA(in_dim+2, [0], [in_dim+1], 2, in_alp, in_ord)
+    Witness.suffix_fsa1(suffix2)
+
+    Dep = Dependence(None, suffix1, suffix2)
+
+    print Dep.test(xform)
+
+def deptest_il():
+    print "Inlining Test"
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -262,7 +335,118 @@ def deptest_example():
 
     print Dep.test(xform)
 
+def deptest_sm():
+    print "Strip-Mining Test"
+    # Dimensions
+    in_dim  = 2
+    out_dim = 3
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    # strip dimension 
+    strip_dim  = 0
+    # strip size
+    strip_size = 2
+
+    xform = Transformation(
+        name        = 'sm',
+        in_dim      = in_dim, 
+        out_dim     = out_dim, 
+        in_dim_type = in_dim_type, 
+        in_alp      = in_alp, 
+        in_ord      = in_ord, 
+        dim_strip   = strip_dim, 
+        strip_size  = strip_size)
+
+    suffix1 = MultiTapeFSA(in_dim+1, [0], [in_dim],   2, in_alp, in_ord)
+    Witness.suffix_fsa0(suffix1)
+    suffix2 = MultiTapeFSA(in_dim+2, [0], [in_dim+1], 2, in_alp, in_ord)
+    Witness.suffix_fsa1(suffix2)
+
+    Dep = Dependence(None, suffix1, suffix2)
+
+    print Dep.test(xform)
+
+def deptest_composition():
+    print "Composition Test"
+    # Dimensions
+    dim  = 2
+    # Type of dimensions
+    dim_type = [1, 2]
+
+    # code-motion 
+    alp1  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    ord1  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    ord2  = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+
+    xform1 = Transformation(
+        name         = 'cm',
+        in_dim       = dim,
+        out_dim      = dim,
+        in_dim_type  = dim_type,
+        in_alp       = alp1,
+        in_ord       = ord1,
+        out_ord      = ord2)
+
+    # Strip Mining
+    strip_dim  = 0
+    strip_size = 2
+
+    xform2 = Transformation(
+        name        = 'sm',
+        in_dim      = xform1.out_dim,
+        out_dim     = xform1.out_dim+1,
+        in_dim_type = xform1.out_dim_type,
+        in_alp      = xform1.out_alp,
+        in_ord      = xform1.out_ord,
+        dim_strip   = strip_dim,
+        strip_size  = strip_size)
+
+    # Interchange
+    dim1_ = 1
+    dim2_ = 2
+    
+    xform3 = Transformation(
+        name         ='ic',
+        in_dim       = xform2.out_dim,
+        out_dim      = xform2.out_dim,
+        in_dim_type  = xform2.out_dim_type,
+        in_alp       = xform2.out_alp,
+        in_ord       = xform2.out_ord,
+        dim_i1       = dim1_,
+        dim_i2       = dim2_)
+
+    # Inline
+    dim_il   = 1
+    call_il  = 1
+    label_il = 'l'
+    
+    xform4 = Transformation(
+        name        = 'il',
+        in_dim      = xform3.out_dim,
+        out_dim     = xform3.out_dim,
+        in_dim_type = xform3.out_dim_type,
+        in_alp      = xform3.out_alp,
+        in_ord      = xform3.out_ord,
+        dim_inline  = dim_il,
+        call_inline = call_il,
+        label       = label_il)
+
+    xform = xform1.compose(xform2).compose(xform3).compose(xform4)
+    
+    suffix1 = MultiTapeFSA(dim+1, [0], [dim],   2, alp1, ord1)
+    Witness.suffix_fsa0(suffix1)
+    suffix2 = MultiTapeFSA(dim+2, [0], [dim+1], 2, alp1, ord1)
+    Witness.suffix_fsa1(suffix2)
+
+    Dep = Dependence(None, suffix1, suffix2)
+
+    print Dep.test(xform)
+
 if __name__ == "__main__":
-    deptest_example()
+    deptest_composition()
+
 
 

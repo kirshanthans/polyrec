@@ -66,8 +66,8 @@ def suffix_fsa6(fsa): #[r1t1, rr2s1]
 
 class WitnessTuple:
     def __init__(self, dims, alphabet, regex):
-        assert dims = len(alphabet)
-        assert dims = len(regex)
+        assert dims == len(alphabet)
+        assert dims == len(regex)
 
         self.dims  = dims
         self.alp   = alphabet

@@ -27,15 +27,6 @@ class MultiTapeFSA:
         self.transitions  = set()
         self.edges        = {}
         self.edges_in     = {}
-
-    def copy(self):
-
-        fsa = MultiTapeFSA(self.nstates, self.init_states, self.final_states, self.dims, self.alphabet, self.order)
-
-        for s, e, tup in self.transitions:
-            fsa.add_transition(s, e, tup) 
-
-        return fsa
     
     def add_transition(self, start, end, tup):
 
@@ -55,6 +46,15 @@ class MultiTapeFSA:
             self.edges_in[end].append((start, tup))
         else:
             self.edges_in[end] = [(start, tup)]  
+    
+    def copy(self):
+
+        fsa = MultiTapeFSA(self.nstates, self.init_states, self.final_states, self.dims, self.alphabet, self.order)
+
+        for s, e, tup in self.transitions:
+            fsa.add_transition(s, e, tup) 
+
+        return fsa
     
     def print_fsa(self):
         
@@ -149,7 +149,7 @@ class MultiTapeFSA:
             n_prev_states = n_curr_states
             n_curr_states = fsa_.nstates
 
-        return fsa
+        return fsa_
 
 class MultiTapeFST:
     def __init__(self, nstates, initstates, finalstates, dimin, dimout, alphabetins, alphabetouts, orderins, orderouts):
