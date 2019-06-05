@@ -2,7 +2,7 @@
 import sys, os
 from statemachines import MultiTapeFSA, MultiTapeFST
 from transformations import Transformation
-import witnesstuples as Witness
+from witnesstuples import WitnessTuple
 
 class Path:
     def __init__(self, fsa):
@@ -179,10 +179,10 @@ class Path:
                 self.path[d].append(l)
 
 class Dependence:
-    def __init__(self, prefix, suffix1, suffix2):
-        self.prefix  = prefix
-        self.suffix1 = suffix1
-        self.suffix2 = suffix2
+    def __init__(self, witness):
+        self.prefix  = None 
+        self.suffix1 = witness.fsa1
+        self.suffix2 = witness.fsa2
 
     def test(self, xform):
         # dependence fst will have only one initial state
@@ -265,12 +265,14 @@ def deptest_cm():
         in_ord       = in_ord,
         out_ord      = out_ord)
 
-    suffix1 = MultiTapeFSA(in_dim+1, [0], [in_dim],   2, in_alp, in_ord)
-    Witness.suffix_fsa0(suffix1)
-    suffix2 = MultiTapeFSA(in_dim+2, [0], [in_dim+1], 2, in_alp, in_ord)
-    Witness.suffix_fsa1(suffix2)
+    # regex for witness tuple    
+    rgx1 = [['t1'], ['s1']]
+    rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
+    
+    wtuple = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx1, rgx2)
+    wtuple.set_fsa()
 
-    Dep = Dependence(None, suffix1, suffix2)
+    Dep = Dependence(wtuple)
 
     print Dep.test(xform)
  
@@ -295,12 +297,14 @@ def deptest_ic():
         dim_i1       = 0,
         dim_i2       = 1)
     
-    suffix1 = MultiTapeFSA(in_dim+1, [0], [in_dim],   2, in_alp, in_ord)
-    Witness.suffix_fsa0(suffix1)
-    suffix2 = MultiTapeFSA(in_dim+2, [0], [in_dim+1], 2, in_alp, in_ord)
-    Witness.suffix_fsa1(suffix2)
+    # regex for witness tuple    
+    rgx1 = [['t1'], ['s1']]
+    rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
+    
+    wtuple = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx1, rgx2)
+    wtuple.set_fsa()
 
-    Dep = Dependence(None, suffix1, suffix2)
+    Dep = Dependence(wtuple)
 
     print Dep.test(xform)
 
@@ -326,12 +330,14 @@ def deptest_il():
         call_inline = 1,
         label       = 'l')
 
-    suffix1 = MultiTapeFSA(in_dim+1, [0], [in_dim],   2, in_alp, in_ord)
-    Witness.suffix_fsa0(suffix1)
-    suffix2 = MultiTapeFSA(in_dim+2, [0], [in_dim+1], 2, in_alp, in_ord)
-    Witness.suffix_fsa1(suffix2)
+    # regex for witness tuple    
+    rgx1 = [['t1'], ['s1']]
+    rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
+    
+    wtuple = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx1, rgx2)
+    wtuple.set_fsa()
 
-    Dep = Dependence(None, suffix1, suffix2)
+    Dep = Dependence(wtuple)
 
     print Dep.test(xform)
 
@@ -360,12 +366,14 @@ def deptest_sm():
         dim_strip   = strip_dim, 
         strip_size  = strip_size)
 
-    suffix1 = MultiTapeFSA(in_dim+1, [0], [in_dim],   2, in_alp, in_ord)
-    Witness.suffix_fsa0(suffix1)
-    suffix2 = MultiTapeFSA(in_dim+2, [0], [in_dim+1], 2, in_alp, in_ord)
-    Witness.suffix_fsa1(suffix2)
+    # regex for witness tuple    
+    rgx1 = [['t1'], ['s1']]
+    rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
+    
+    wtuple = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx1, rgx2)
+    wtuple.set_fsa()
 
-    Dep = Dependence(None, suffix1, suffix2)
+    Dep = Dependence(wtuple)
 
     print Dep.test(xform)
 
@@ -436,16 +444,22 @@ def deptest_composition():
 
     xform = xform1.compose(xform2).compose(xform3).compose(xform4)
     
-    suffix1 = MultiTapeFSA(dim+1, [0], [dim],   2, alp1, ord1)
-    Witness.suffix_fsa0(suffix1)
-    suffix2 = MultiTapeFSA(dim+2, [0], [dim+1], 2, alp1, ord1)
-    Witness.suffix_fsa1(suffix2)
+    # regex for witness tuple    
+    rgx1 = [['t1'], ['s1']]
+    rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
+    
+    wtuple = WitnessTuple(dim, dim_type, alp1, ord1, rgx1, rgx2)
+    wtuple.set_fsa()
 
-    Dep = Dependence(None, suffix1, suffix2)
+    Dep = Dependence(wtuple)
 
     print Dep.test(xform)
 
 if __name__ == "__main__":
+    deptest_cm()
+    deptest_ic()
+    deptest_il()
+    deptest_sm()
     deptest_composition()
 
 

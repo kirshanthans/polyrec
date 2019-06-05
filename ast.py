@@ -1,7 +1,22 @@
 #!/usr/bin/python
 class ASTNode:
     def __init__(self):
-        pass
+        self.tag = None
+
+    def tag(self, tg):
+        self.tag = tg
+
+class Program(ASTNode):
+    def __init__(self, fs):
+        self.funcs = fs
+    
+    def codegen(self):
+        program_string = ''
+        if self.funcs != None:
+            for f in self.funcs:
+                program_string += f.codegen() + '\n'
+        
+        return program_string
 
 class Function(ASTNode):
     def __init__(self, typ, name, params, stmts):
@@ -19,9 +34,13 @@ class Function(ASTNode):
         
         body_string = ''
         if self.stmts != None:
-            body_string = self.stmts[0].codegen() + ';'
+            body_string = '\t' + self.stmts[0].codegen()
+            if body_string[-1] != '}':
+                body_string += ';'
             for s in self.stmts[1:]:
-                body_string += '\n' + s.codegen() + ';'
+                body_string += '\n\t' + s.codegen()
+                if body_string[-1] != '}':
+                    body_string += ';'
             body_string += '\n'
         
         func_string  = self.typ + ' ' + self.name + '(' + param_string + ')\n'
@@ -53,30 +72,25 @@ class IfStmt(Stmt):
     def codegen(self):
         cond_string = self.cond.codegen()
         then_string = self.then.codegen()
-        if_string = 'if ( ' + cond_string + ' ){\n\t' + then_string + ';\n}'
+        if_string = 'if (' + cond_string + ') ' + then_string 
         
         if self.els != None:
+            if_string = 'if (' + cond_string + '){\n\t' + then_string + ';\n}'
             els_string = self.els.codegen()
-            if_string += 'else {\n\t' + els_string + '\n}' 
+            if_string += 'else {\n\t' + els_string + ';\n}' 
 
         return if_string
 
-class Return(Stmt):
+class ReturnStmt(Stmt):
     def __init__(self, expr):
         self.expr = expr
     
     def codegen(self):
-        return_string = 'return ' + self.expr.codegen()
+        return_string = 'return'
+        if self.expr != None:
+            return_string += ' ' + self.expr.codegen() 
         
         return return_string
-
-class CallStmt(Stmt):
-    def __init__(self, callee, exprs):
-        self.callee = callee
-        self.exprs  = exprs 
-    
-    def codegen(self):
-        pass
 
 class Assignment(Stmt):
     def __init__(self, lhs, rhs):
@@ -84,21 +98,46 @@ class Assignment(Stmt):
         self.rhs = rhs
 
     def codegen(self):
-        pass
+        assign_string = self.lhs.codegen() + ' = ' + self.rhs.codegen()
+        
+        return assign_string
 
 class Expr(Stmt):
     def __init__(self):
         pass
 
+class CallExpr(Expr):
+    def __init__(self, callee, args):
+        self.callee = callee
+        self.args   = args
+    
     def codegen(self):
-        return ''
+        name_string = self.callee
+        arg_string  = ''
+        if self.args != None:
+            arg_string = self.args[0].codegen() 
+            for a in self.args[1:]:
+                arg_string += ', ' + a.codegen()
+        
+        call_string = name_string + '(' + arg_string + ')'
+
+        return call_string
 
 class Number(Expr):
     def __init__(self, value):
         self.value = value
     
     def codegen(self):
-        pass
+        num_string = self.value
+
+        return str(num_string)
+
+class Const(Expr):
+    def __init__(self, val):
+        self.value = val
+    
+    def codegen(self):
+        return self.value
 
 class Array(Expr):
     def __init__(self, var, index):
@@ -106,16 +145,20 @@ class Array(Expr):
         self.index = index
     
     def codegen(self):
-        pass
+        arry_string = self.var.codegen() + '[' + self.index.codegen() + ']'
+
+        return arry_string
 
 class BinOp(Expr):
     def __init__(self, op, lhs, rhs):
         self.op  = op
-        self.lhs = rhs
+        self.lhs = lhs
         self.rhs = rhs
     
     def codegen(self):
-        pass
+        binop_string = self.lhs.codegen() + self.op + self.rhs.codegen()
+
+        return binop_string
 
 class Var(Expr):
     def __init__(self, name):
@@ -132,11 +175,23 @@ class Field(Expr):
         return self.label
 
 def main():
-    ps = [Param('int', Var('i')), Param('Node *', Var('n'))]
-    ss = [IfStmt(Expr(), Return(Expr()), None)]
-    f  = Function('void', 'f1', ps, ss)
-    print f.codegen()
+    ps  = [Param('int', Var('i')), Param('Node *', Var('n'))]
+    ss1 = [
+          IfStmt(BinOp("<=", Var('i'), Var('N')), ReturnStmt(None), None),
+          CallExpr('f2', [Var('i'), Var('n')]),
+          CallExpr('f1', [BinOp('+', Var('i'), Number(1)), Var('n')])
+         ]
+    f1  = Function('void', 'f1', ps, ss1)
+    ss2 = [
+          IfStmt(BinOp("==", Var('n'), Const('NULL')), ReturnStmt(None), None),
+          CallExpr('f2', [Var('i'), BinOp('->', Var('n'), Field('l'))]),
+          CallExpr('f2', [Var('i'), BinOp('->', Var('n'), Field('r'))])
+         ]
+    f2  = Function('void', 'f2', ps, ss2)
 
+    p = Program([f1, f2])
+
+    print p.codegen()
 
 if __name__ == "__main__":
     main()
