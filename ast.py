@@ -174,7 +174,7 @@ class Field(Expr):
     def codegen(self):
         return self.label
 
-def main():
+def ast_test():
     ps  = [Param('int', Var('i')), Param('Node *', Var('n'))]
     ss1 = [
           IfStmt(BinOp("<=", Var('i'), Var('N')), ReturnStmt(None), None),
@@ -194,4 +194,4 @@ def main():
     print p.codegen()
 
 if __name__ == "__main__":
-    main()
+    ast_test()

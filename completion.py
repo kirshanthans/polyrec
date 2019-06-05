@@ -1,10 +1,11 @@
 #!/usr/bin/python
+import itertools as itert
 from transformations import Transformation
 from dependencetest import Dependence
 from witnesstuples import WitnessTuple
 
 class Completion:
-    def __init__(self, in_dims, in_dim_type, in_alphabet, in_order, partial, witness):
+    def __init__(self, in_dims, in_dim_type, in_alphabet, in_order, partial, deps):
         assert in_dims == len(in_dim_type)
         assert in_dims == len(in_alphabet)
         assert in_dims == len(in_order)
@@ -15,7 +16,7 @@ class Completion:
         self.in_alp      = in_alphabet # alphabet of input program
         self.in_ord      = in_order    # input program order
         self.partial     = partial     # partial order of the output program
-        self.witness     = witness     # list of witness tuples of the input program
+        self.deps        = deps        # list of dependence objects of the input program
 
         self.sanity = False # check partial order for sanity
         self.use_ic = False # check the potential use of interchange
@@ -23,9 +24,11 @@ class Completion:
         # For future use
         self.use_sm = False # check the potential use of strip-mining
 
-        self.num_pcompletions = 0     # different potential completions
-        self.num_vcompletions = 0     # different valid completions
-        self.completion_xform = []    # transformations for completion
+        self.npcomps = 0     # different potential completions
+        self.nvcomps = 0     # different valid completions
+        
+        self.pxforms = []    # potential transformations for completion
+        self.vxforms = []    # valid transformations for completion
 
     def check_sanity(self): # simple sanity check for partial order
         for d in self.partial:
@@ -109,9 +112,23 @@ class Completion:
     def completion_search(self):
         pass
 
+        # all possible combinations of cm xforms
+
     def completion_valid(self):
-        if self.num_pcompletions == 0:
+        if self.npcomps == 0:
             return
+        
+        for xfs in self.pxforms:
+            xform = xfs[0]
+            for x in xfs[1:]:
+                xform = xform.compose(x)
+            
+            for d in self.deps:
+                if !d.test(xform):
+                    break
+            
+            self.vxforms.append(xfs)
+            self.pxforms += 1
 
 def completion_test():
     print "Completion Test"
@@ -123,26 +140,26 @@ def completion_test():
     alp1 = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
     ord1 = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
     # partial order
-    partial1 = [['t', 'r'], ['s', 'r', 'r']] # cm
-    partial2 = [['r', 't'], ['s', 'r', 'r']] # cm-cm
-    partial3 = [['t', 'r', 'r'], ['s', 'r']] # cm-ic
+    partial1 = [['t', 'r'], ['s', 'r', 'r']] # potential cm
+    partial2 = [['r', 't'], ['s', 'r', 'r']] # potential cm-cm
+    partial3 = [['t', 'r', 'r'], ['s', 'r']] # potential cm-ic
     # witness tuple
     rgx1 = [['t1'], ['s1']]
     rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
     wtuple1 = WitnessTuple(dim, dim_type, alp1, ord1, rgx1, rgx2)
     wtuple1.set_fsa()
 
-    comp1 = Completion(dim, dim_type, alp1, ord1, partial1, wtuple1)
+    comp1 = Completion(dim, dim_type, alp1, ord1, partial1, [Dependence(wtuple1)])
     comp1.checks()
     print "Completion 1"
     comp1.print_report()
 
-    comp2 = Completion(dim, dim_type, alp1, ord1, partial2, wtuple1)
+    comp2 = Completion(dim, dim_type, alp1, ord1, partial2, [Dependence(wtuple1)])
     comp2.checks()
     print "Completion 2"
     comp2.print_report()
 
-    comp3 = Completion(dim, dim_type, alp1, ord1, partial3, wtuple1)
+    comp3 = Completion(dim, dim_type, alp1, ord1, partial3, [Dependence(wtuple1)])
     comp3.checks()
     print "Completion 3"
     comp3.print_report()

@@ -201,7 +201,6 @@ class Dependence:
         assert path1.dictionary == path2.dictionary
         assert path1.flat_dict  == path2.flat_dict
         assert path1.pg_ord     == path2.pg_ord
-
         
         for s1 in path1.fsa.init_states:
             for s2 in path2.fsa.init_states:
