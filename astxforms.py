@@ -22,7 +22,7 @@ class ASTXform:
         
         return self.ast.codegen()
 
-def test_cm():
+def cm_test():
     ast = None 
     
     xform = ASTXform(ast)
@@ -36,7 +36,7 @@ def test_cm():
     xform.codegen()
 
 if __name__ == "__main__":
-    test_cm()
+    cm_test()
 
 
         

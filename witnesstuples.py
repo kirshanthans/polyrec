@@ -119,7 +119,7 @@ class WitnessTuple:
         self.complete_fsa(1)
         self.complete_fsa(2)
 
-def test_witness():
+def witness_test():
     # dims
     dim = 2
     # dim type
@@ -159,4 +159,4 @@ def test_witness():
     wtuple3.fsa2.print_fsa()
 
 if __name__ == "__main__":
-    test_witness()
+    witness_test()
