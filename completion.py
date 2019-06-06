@@ -11,7 +11,7 @@ class Completion:
         assert in_dims == len(in_order)
         assert in_dims <= len(partial)
 
-        self.in_dims     = in_dims     # input program dimensions
+        self.in_dim      = in_dims     # input program dimensions
         self.in_dim_type = in_dim_type # input program dimension types 
         self.in_alp      = in_alphabet # alphabet of input program
         self.in_ord      = in_order    # input program order
@@ -52,7 +52,7 @@ class Completion:
         pg_ord = [d[1:] for d in self.in_ord] # ripping 'e' label
         pg_ord_typ = [list(map(lambda x: x[0], d)) for d in pg_ord] # getting the label types (~ partial)
 
-        for i in xrange(self.in_dims-1):
+        for i in xrange(self.in_dim-1):
             if self.partial[i].count('r') != pg_ord_typ[i].count('r'): # this is a weak check
                 self.use_ic = True
     
@@ -62,7 +62,7 @@ class Completion:
         self.use_il = True
 
     def check_use_sm(self): # use of strip mining should be researched more - no test for now
-        if self.in_dims == len(self.partial):
+        if self.in_dim == len(self.partial):
             return
         self.use_sm = True
     
@@ -106,25 +106,27 @@ class Completion:
         
         return True
     
-    def all_perm(self, d): # all permutations of a dimension
-        assert d < self.in_dims
+    @staticmethod
+    def all_perm(order, d): # all permutations of a dimension
+        assert d < len(order)
 
-        order = list(self.in_ord[d][1:]) # dimension to find all permutations
+        ord_d = list(order[d][1:]) # dimension to find all permutations
         out_ords = [] # output order of all permutations
 
-        for d_ord in itertools.permutations(order): # finding all permutation
+        for d_ord in itertools.permutations(ord_d): # finding all permutation
             out_ords.append(['e'] + list(d_ord))
 
         return out_ords
 
-    def cm_out_ords(self): # all combinations of codemotion output orders
-        alldim = [] 
-        for d in xrange(self.in_dims): # finding all permutations of all dimensions
-            alldim.append(self.all_perm(d))
+    @staticmethod
+    def ord_permutation(order, dim):# all combinations of codemotion output orders
+        alldim = []
+        for d in xrange(dim): # finding all permutations of all dimensions
+            alldim.append(Completion.all_perm(order, d))
         
         out_ords = []
         for out_ord in itertools.product(*alldim): # taking the cross product of these different orders
-            if list(out_ord) == self.in_ord:
+            if list(out_ord) == order:
                 continue
             out_ords.append(list(out_ord))
 
@@ -135,7 +137,7 @@ class Completion:
         nxt_xfs = []
         out_ords = Completion.ord_permutation(xf.out_ord, xf.out_dim)
         for out_ord in out_ords:
-            xf = Transformation(
+            xf_ = Transformation(
                 name         = 'cm',
                 in_dim       = xf.out_dim,
                 out_dim      = xf.out_dim,
@@ -143,15 +145,15 @@ class Completion:
                 in_alp       = xf.out_alp,
                 in_ord       = xf.out_ord,
                 out_ord      = out_ord)
-            nxt_xfs.append(xf)
+            nxt_xfs.append(xf_)
 
         return nxt_xfs
     
     @staticmethod
     def next_pic(xf): # takes transformation and returns a list of next possible xforms that are interchange
         nxt_xfs = []
-        for d in xrange(xf.out_dims-1):
-            xf = Transformation(
+        for d in xrange(xf.out_dim-1):
+            xf_ = Transformation(
                 name         ='ic',
                 in_dim       = xf.out_dim,
                 out_dim      = xf.out_dim,
@@ -160,50 +162,122 @@ class Completion:
                 in_ord       = xf.out_ord,
                 dim_i1       = d,
                 dim_i2       = d+1)
-            nxt_xfs.append(xf)
+            nxt_xfs.append(xf_)
         
         return nxt_xfs
-            
+
+    @staticmethod
+    def next_pil(xf, d):
+        assert xf.out_dim-1 == d
+        
+        ncalls = xf.out_dim_type[d]
+        nxt_xfs = []
+        for c in xrange(1, ncalls+1):
+            xf_ = Transformation(
+                name        = 'il',
+                in_dim      = xf.out_dim,
+                out_dim     = xf.out_dim,
+                in_dim_type = xf.out_dim_type,
+                in_alp      = xf.out_alp,
+                in_ord      = xf.out_ord,
+                dim_inline  = d,
+                call_inline = c,
+                label       = 'il'+str(c))
+            nxt_xfs.append(xf_)
+        
+        return nxt_xfs
 
     def completion_search(self):
-        init_xfs = [] # seed xforms to further the chain
-
-        cm_xfs = [] # contians any cm xform that does not match the partial order to further the chain
-        out_ords = Completion.ord_permutation(self.in_ord, self.in_dims) # all possible different combinations of cm xforms
+        # stage 1
+        init_xfs = [] # initial cm ic and il transformations
+        out_ords = Completion.ord_permutation(self.in_ord, self.in_dim) # all possible different combinations of cm xforms
         for out_ord in out_ords:
             xf = Transformation(
                 name         = 'cm',
-                in_dim       = self.in_dims,
-                out_dim      = self.in_dims,
+                in_dim       = self.in_dim,
+                out_dim      = self.in_dim,
                 in_dim_type  = self.in_dim_type,
                 in_alp       = self.in_alp,
                 in_ord       = self.in_ord,
                 out_ord      = out_ord)
             
-            if self.check_match(xf.out_ord):
+            if self.check_match(xf.out_ord): #cover cm
                 self.pxforms.append([xf])
             else:
-                cm_xfs.append(xf)
+                init_xfs.append([xf])
         
         if self.use_ic:
-            ic_xfs = [] # contains any ic xform that does not match the partial order to further the chain
-            for d in xrange(self.in_dims-1):
+            for d in xrange(self.in_dim-1):
                 xf = Transformation(
                     name         ='ic',
-                    in_dim       = self.in_dims,
-                    out_dim      = self.in_dims,
+                    in_dim       = self.in_dim,
+                    out_dim      = self.in_dim,
                     in_dim_type  = self.in_dim_type,
                     in_alp       = self.in_alp,
                     in_ord       = self.in_ord,
                     dim_i1       = d,
                     dim_i2       = d+1)
 
-                if self.check_match(xf.out_ord):
+                if self.check_match(xf.out_ord): #cover ic
                     self.pxforms.append([xf])
                 else:
-                    ic_xfs.append(xf)
-    
+                    init_xfs.append([xf])
+
+        if self.use_il:
+            ncalls = self.in_dim_type[self.in_dim-1]
+            for c in xrange(1, ncalls+1):
+                xf = Transformation(
+                    name        = 'il',
+                    in_dim      = self.in_dim,
+                    out_dim     = self.in_dim,
+                    in_dim_type = self.in_dim_type,
+                    in_alp      = self.in_alp,
+                    in_ord      = self.in_ord,
+                    dim_inline  = self.in_dim-1,
+                    call_inline = c,
+                    label       = 'il'+str(c))
+
+                if self.check_match(xf.out_ord): #cover il
+                    self.pxforms.append([xf])
+                else:
+                    init_xfs.append([xf])
+        # stage 2
+        init_xfs_ = []
+        for xfs in init_xfs:
+            nxfs1 = []
+            nxfs2 = []
+            if xfs[-1].name == "cm":
+                nxfs1 = Completion.next_pic(xfs[-1])
+                nxfs2 = Completion.next_pil(xfs[-1], xfs[-1].out_dim-1) 
+            elif xfs[-1].name == "ic":
+                nxfs1 = Completion.next_pcm(xfs[-1])
+                nxfs2 = Completion.next_pil(xfs[-1], xfs[-1].out_dim-1) 
+            
+            for xf_ in nxfs1:
+                if self.check_match(xf_.out_ord): #cover cm-ic and ic-cm
+                    self.pxforms.append(xfs+[xf_])
+                else:
+                    init_xfs_.append(xfs+[xf_])
+            
+            if self.use_il:
+                for xf_ in nxfs2:
+                    if self.check_match(xf_.out_ord): #cover cm-il and ic-il
+                        self.pxforms.append(xfs+[xf_])
+                    else:
+                        init_xfs_.append(xfs+[xf_])
+        # stage 3
+        if self.use_il:            
+            for xfs in init_xfs_: #covering cm-ic-il and ic-cm-il
+                if xfs[-1].name != "il":
+                    nxfs = Completion.next_pil(xfs[-1], xfs[-1].out_dim-1)
+                    for xf_ in nxfs:
+                        if self.check_match(xf_.out_ord):
+                            self.pxforms.append(xfs+[xf_])
+
     def print_pxforms(self):
+        if len(self.pxforms) == 0:
+            print "No Potential Transformations"
+            return
         print "\nPotential Transformations"
         for xfs,i in zip(self.pxforms, xrange(len(self.pxforms))):
             print "xform ", i
@@ -221,12 +295,15 @@ class Completion:
                 xform = xform.compose(x)
             
             for d in self.deps:
-                if ~d.test(xform):
+                if not d.test(xform):
                     break
-            
-            self.vxforms.append(xfs)
+            else:
+                self.vxforms.append(xfs)
 
     def print_vxforms(self):
+        if len(self.vxforms) == 0:
+            print "No Valid Transformations"
+            return
         print "\nValid Transformations"
         for xfs,i in zip(self.vxforms, xrange(len(self.vxforms))):
             print "xform ", i
@@ -247,6 +324,7 @@ def completion_test():
     partial1 = [['t', 'r'], ['s', 'r', 'r']] # potential cm
     partial2 = [['r', 't'], ['s', 'r', 'r']] # potential cm-cm
     partial3 = [['t', 'r', 'r'], ['s', 'r']] # potential cm-ic
+    partial4 = [['t', 'r'], ['s', 's', 'r', 'r', 'r']] # potential cm-il
     # witness tuple
     rgx1 = [['t1'], ['s1']]
     rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
@@ -262,15 +340,32 @@ def completion_test():
     comp1.completion_valid()
     comp1.print_vxforms()
 
-    # comp2 = Completion(dim, dim_type, alp1, ord1, partial2, [Dependence(wtuple1)])
-    # comp2.checks()
-    # print "Completion 2"
-    # comp2.print_report()
+    print "\nCompletion 2"
+    comp2 = Completion(dim, dim_type, alp1, ord1, partial2, [Dependence(wtuple1)])
+    comp2.checks()
+    comp2.print_report()
+    comp2.completion_search()
+    comp2.print_pxforms()
+    comp2.completion_valid()
+    comp2.print_vxforms()
 
-    # comp3 = Completion(dim, dim_type, alp1, ord1, partial3, [Dependence(wtuple1)])
-    # comp3.checks()
-    # print "Completion 3"
-    # comp3.print_report()
+    print "\nCompletion 3"
+    comp3 = Completion(dim, dim_type, alp1, ord1, partial3, [Dependence(wtuple1)])
+    comp3.checks()
+    comp3.print_report()
+    comp3.completion_search()
+    comp3.print_pxforms()
+    comp3.completion_valid()
+    comp3.print_vxforms()
+
+    print "\nCompletion 4"
+    comp4 = Completion(dim, dim_type, alp1, ord1, partial4, [Dependence(wtuple1)])
+    comp4.checks()
+    comp4.print_report()
+    comp4.completion_search()
+    comp4.print_pxforms()
+    comp4.completion_valid()
+    comp4.print_vxforms()
 
 if __name__ == "__main__":
     completion_test()
