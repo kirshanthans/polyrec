@@ -9,7 +9,7 @@ class ASTNode:
 class Program(ASTNode):
     def __init__(self, fs):
         self.funcs = fs
-    
+
     def codegen(self):
         program_string = ''
         if self.funcs != None:
@@ -24,7 +24,7 @@ class Function(ASTNode):
         self.name   = name
         self.params = params
         self.stmts  = stmts
-
+    
     def codegen(self):
         param_string = ''
         if self.params != None:
@@ -175,20 +175,28 @@ class Field(Expr):
         return self.label
 
 def ast_test():
-    ps  = [Param('int', Var('i')), Param('Node *', Var('n'))]
-    ss1 = [
-          IfStmt(BinOp("<=", Var('i'), Var('N')), ReturnStmt(None), None),
-          CallExpr('f2', [Var('i'), Var('n')]),
-          CallExpr('f1', [BinOp('+', Var('i'), Number(1)), Var('n')])
-         ]
-    f1  = Function('void', 'f1', ps, ss1)
-    ss2 = [
-          IfStmt(BinOp("==", Var('n'), Const('NULL')), ReturnStmt(None), None),
-          CallExpr('f2', [Var('i'), BinOp('->', Var('n'), Field('l'))]),
-          CallExpr('f2', [Var('i'), BinOp('->', Var('n'), Field('r'))])
-         ]
-    f2  = Function('void', 'f2', ps, ss2)
-
+    # function 1
+    g1 = IfStmt(BinOp("<=", Var('i'), Var('N')), ReturnStmt(None), None)
+    g1.tag('g1')
+    r1 = CallExpr('f1', [BinOp('+', Var('i'), Number(1)), Var('n')])
+    r1.tag('r1')
+    t1 = CallExpr('f2', [Var('i'), Var('n')])
+    t1.tag('t1')
+    ss1 = [g1, t1, r1]
+    f1  = Function('void', 'f1', [Param('int', Var('i')), Param('Node *', Var('n'))], [g1, t1, r1])
+    f1.tag('f1')
+    # function 2
+    g2 = IfStmt(BinOp("==", Var('n'), Const('NULL')), ReturnStmt(None), None)
+    g2.tag('g2')
+    r2l = CallExpr('f2', [Var('i'), BinOp('->', Var('n'), Field('l'))])
+    r2l.tag('r2l')
+    r2r = CallExpr('f2', [Var('i'), BinOp('->', Var('n'), Field('r'))])
+    r2r.tag('r2r')
+    s1 = Assignment(BinOp('->', Var('n'), Array(Var('x'),Var('i'))), BinOp('+', BinOp('->', Var('n'), Array(Var('x'),Var('i'))),Number(1)))
+    s1.tag('s1')
+    f2 = Function('void', 'f2', [Param('int', Var('i')), Param('Node *', Var('n'))], [g2, r2l, r2r, s1])
+    f2.tag('f2')
+    # program (nest)
     p = Program([f1, f2])
 
     print p.codegen()
