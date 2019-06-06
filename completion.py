@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import itertools as itert
+import itertools
 from transformations import Transformation
 from dependencetest import Dependence
 from witnesstuples import WitnessTuple
@@ -21,14 +21,10 @@ class Completion:
         self.sanity = False # check partial order for sanity
         self.use_ic = False # check the potential use of interchange
         self.use_il = False # check the potential use of inlining
-        # For future use
-        self.use_sm = False # check the potential use of strip-mining
+        self.use_sm = False # check the potential use of strip-mining (Future use)
 
-        self.npcomps = 0     # different potential completions
-        self.nvcomps = 0     # different valid completions
-        
-        self.pxforms = []    # potential transformations for completion
-        self.vxforms = []    # valid transformations for completion
+        self.pxforms = []    # potential transformations for completion (list of lists)
+        self.vxforms = []    # valid transformations for completion (list of lists)
 
     def check_sanity(self): # simple sanity check for partial order
         for d in self.partial:
@@ -77,6 +73,7 @@ class Completion:
         self.check_use_il()
 
     def print_report(self): # print summary of sanity checks
+        print "\nInitial Report"
         if self.sanity:
             print "Partial order is sane"
         else:
@@ -98,24 +95,124 @@ class Completion:
         if len(self.partial) != len(order): # checking for dimensions size match
             return False
         
-        for i in len(self.partial):
+        for i in xrange(len(self.partial)):
             if len(self.partial[i]) != len(order[i]): # checking for each dimension size match
                 return False
 
-        for i in len(self.partial):
-            for j in len(self.partial[i]):
+        for i in xrange(len(self.partial)):
+            for j in xrange(len(self.partial[i])):
                 if self.partial[i][j] != order[i][j][0]: # checking for matching type of label in each dimension
                     return False                         # for example r matches 'r1', 'r2l' an 'r2r'
         
         return True
     
+    def all_perm(self, d): # all permutations of a dimension
+        assert d < self.in_dims
+
+        order = list(self.in_ord[d][1:]) # dimension to find all permutations
+        out_ords = [] # output order of all permutations
+
+        for d_ord in itertools.permutations(order): # finding all permutation
+            out_ords.append(['e'] + list(d_ord))
+
+        return out_ords
+
+    def cm_out_ords(self): # all combinations of codemotion output orders
+        alldim = [] 
+        for d in xrange(self.in_dims): # finding all permutations of all dimensions
+            alldim.append(self.all_perm(d))
+        
+        out_ords = []
+        for out_ord in itertools.product(*alldim): # taking the cross product of these different orders
+            if list(out_ord) == self.in_ord:
+                continue
+            out_ords.append(list(out_ord))
+
+        return out_ords
+
+    @staticmethod
+    def next_pcm(xf): # takes transformation and returns a list of next possible xforms that are code motion
+        nxt_xfs = []
+        out_ords = Completion.ord_permutation(xf.out_ord, xf.out_dim)
+        for out_ord in out_ords:
+            xf = Transformation(
+                name         = 'cm',
+                in_dim       = xf.out_dim,
+                out_dim      = xf.out_dim,
+                in_dim_type  = xf.out_dim_type,
+                in_alp       = xf.out_alp,
+                in_ord       = xf.out_ord,
+                out_ord      = out_ord)
+            nxt_xfs.append(xf)
+
+        return nxt_xfs
+    
+    @staticmethod
+    def next_pic(xf): # takes transformation and returns a list of next possible xforms that are interchange
+        nxt_xfs = []
+        for d in xrange(xf.out_dims-1):
+            xf = Transformation(
+                name         ='ic',
+                in_dim       = xf.out_dim,
+                out_dim      = xf.out_dim,
+                in_dim_type  = xf.out_dim_type,
+                in_alp       = xf.out_alp,
+                in_ord       = xf.out_ord,
+                dim_i1       = d,
+                dim_i2       = d+1)
+            nxt_xfs.append(xf)
+        
+        return nxt_xfs
+            
+
     def completion_search(self):
-        pass
+        init_xfs = [] # seed xforms to further the chain
 
-        # all possible combinations of cm xforms
+        cm_xfs = [] # contians any cm xform that does not match the partial order to further the chain
+        out_ords = Completion.ord_permutation(self.in_ord, self.in_dims) # all possible different combinations of cm xforms
+        for out_ord in out_ords:
+            xf = Transformation(
+                name         = 'cm',
+                in_dim       = self.in_dims,
+                out_dim      = self.in_dims,
+                in_dim_type  = self.in_dim_type,
+                in_alp       = self.in_alp,
+                in_ord       = self.in_ord,
+                out_ord      = out_ord)
+            
+            if self.check_match(xf.out_ord):
+                self.pxforms.append([xf])
+            else:
+                cm_xfs.append(xf)
+        
+        if self.use_ic:
+            ic_xfs = [] # contains any ic xform that does not match the partial order to further the chain
+            for d in xrange(self.in_dims-1):
+                xf = Transformation(
+                    name         ='ic',
+                    in_dim       = self.in_dims,
+                    out_dim      = self.in_dims,
+                    in_dim_type  = self.in_dim_type,
+                    in_alp       = self.in_alp,
+                    in_ord       = self.in_ord,
+                    dim_i1       = d,
+                    dim_i2       = d+1)
 
+                if self.check_match(xf.out_ord):
+                    self.pxforms.append([xf])
+                else:
+                    ic_xfs.append(xf)
+    
+    def print_pxforms(self):
+        print "\nPotential Transformations"
+        for xfs,i in zip(self.pxforms, xrange(len(self.pxforms))):
+            print "xform ", i
+            print "\t", xfs[0].to_string()
+            for xf in xfs[1:]:
+                print "\t", xf.to_string()
+    
     def completion_valid(self):
-        if self.npcomps == 0:
+        if len(self.pxforms) == 0:
             return
         
         for xfs in self.pxforms:
@@ -124,11 +221,18 @@ class Completion:
                 xform = xform.compose(x)
             
             for d in self.deps:
-                if !d.test(xform):
+                if ~d.test(xform):
                     break
             
             self.vxforms.append(xfs)
-            self.pxforms += 1
+
+    def print_vxforms(self):
+        print "\nValid Transformations"
+        for xfs,i in zip(self.vxforms, xrange(len(self.vxforms))):
+            print "xform ", i
+            print "\t", xfs[0].to_string()
+            for xf in xfs[1:]:
+                print "\t", xf.to_string()
 
 def completion_test():
     print "Completion Test"
@@ -149,20 +253,24 @@ def completion_test():
     wtuple1 = WitnessTuple(dim, dim_type, alp1, ord1, rgx1, rgx2)
     wtuple1.set_fsa()
 
+    print "\nCompletion 1"
     comp1 = Completion(dim, dim_type, alp1, ord1, partial1, [Dependence(wtuple1)])
     comp1.checks()
-    print "Completion 1"
     comp1.print_report()
+    comp1.completion_search()
+    comp1.print_pxforms()
+    comp1.completion_valid()
+    comp1.print_vxforms()
 
-    comp2 = Completion(dim, dim_type, alp1, ord1, partial2, [Dependence(wtuple1)])
-    comp2.checks()
-    print "Completion 2"
-    comp2.print_report()
+    # comp2 = Completion(dim, dim_type, alp1, ord1, partial2, [Dependence(wtuple1)])
+    # comp2.checks()
+    # print "Completion 2"
+    # comp2.print_report()
 
-    comp3 = Completion(dim, dim_type, alp1, ord1, partial3, [Dependence(wtuple1)])
-    comp3.checks()
-    print "Completion 3"
-    comp3.print_report()
+    # comp3 = Completion(dim, dim_type, alp1, ord1, partial3, [Dependence(wtuple1)])
+    # comp3.checks()
+    # print "Completion 3"
+    # comp3.print_report()
 
 if __name__ == "__main__":
     completion_test()

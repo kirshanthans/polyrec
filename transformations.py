@@ -77,6 +77,23 @@ class Transformation:
         print "\nOutput Program"
         self.fst.project_out().print_prog()
 
+    def to_string(self):
+        sstring = self.name +" "
+
+        iprg = "**in prog: "
+        for iord in self.in_ord:
+            for e in iord[1:]:
+                iprg += e + " "
+        
+        oprg = "**out prog: "
+        for oord in self.out_ord:
+            for e in oord[1:]:
+                oprg += e + " "
+
+        sstring += iprg + oprg
+
+        return sstring
+        
     def compose(self, xform):
         assert self.out_dim == xform.in_dim
         assert self.out_dim_type == xform.in_dim_type
