@@ -2,6 +2,7 @@
 class ASTNode:
     def __init__(self):
         self.tag = None
+        self.children = []
 
     def tag(self, tg):
         self.tag = tg
@@ -9,6 +10,7 @@ class ASTNode:
 class Program(ASTNode):
     def __init__(self, fs):
         self.funcs = fs
+        self.children = fs
 
     def codegen(self):
         program_string = ''
@@ -24,6 +26,7 @@ class Function(ASTNode):
         self.name   = name
         self.params = params
         self.stmts  = stmts
+        self.children = stmts
     
     def codegen(self):
         param_string = ''
@@ -60,14 +63,14 @@ class Param(ASTNode):
         return param_string
 
 class Stmt(ASTNode):
-    def __init__(self):
-        pass
+    pass
 
 class IfStmt(Stmt):
     def __init__(self, cond, then, els):
         self.cond = cond
         self.then = then
         self.els  = els
+        self.children = [cond, then, els]
     
     def codegen(self):
         cond_string = self.cond.codegen()
@@ -84,6 +87,7 @@ class IfStmt(Stmt):
 class ReturnStmt(Stmt):
     def __init__(self, expr):
         self.expr = expr
+        self.children = [expr]
     
     def codegen(self):
         return_string = 'return'
@@ -96,6 +100,7 @@ class Assignment(Stmt):
     def __init__(self, lhs, rhs):
         self.lhs = lhs
         self.rhs = rhs
+        self.children = [lhs, rhs]
 
     def codegen(self):
         assign_string = self.lhs.codegen() + ' = ' + self.rhs.codegen()
@@ -103,13 +108,13 @@ class Assignment(Stmt):
         return assign_string
 
 class Expr(Stmt):
-    def __init__(self):
-        pass
+    pass
 
 class CallExpr(Expr):
     def __init__(self, callee, args):
         self.callee = callee
         self.args   = args
+        self.children = args
     
     def codegen(self):
         name_string = self.callee
@@ -126,6 +131,7 @@ class CallExpr(Expr):
 class Number(Expr):
     def __init__(self, value):
         self.value = value
+        self.children = []
     
     def codegen(self):
         num_string = self.value
@@ -135,6 +141,7 @@ class Number(Expr):
 class Const(Expr):
     def __init__(self, val):
         self.value = val
+        self.children = []
     
     def codegen(self):
         return self.value
@@ -143,6 +150,7 @@ class Array(Expr):
     def __init__(self, var, index):
         self.var   = var 
         self.index = index
+        self.children = [var, index]
     
     def codegen(self):
         arry_string = self.var.codegen() + '[' + self.index.codegen() + ']'
@@ -154,6 +162,7 @@ class BinOp(Expr):
         self.op  = op
         self.lhs = lhs
         self.rhs = rhs
+        self.children = [lhs, rhs]
     
     def codegen(self):
         binop_string = self.lhs.codegen() + self.op + self.rhs.codegen()
@@ -163,6 +172,15 @@ class BinOp(Expr):
 class Var(Expr):
     def __init__(self, name):
         self.name = name
+        self.children = []
+    
+    def __eq__(self, other):
+        if isinstance(other, Var):
+            return self.name == other.name
+        return False
+    
+    def __ne__(self, other):
+        return not self.__eq__(other)
     
     def codegen(self):
         return self.name
@@ -170,7 +188,16 @@ class Var(Expr):
 class Field(Expr):
     def __init__(self, label):
         self.label = label 
+        self.children = []
     
+    def __eq__(self, other):
+        if isinstance(other, Field):
+            return self.label == other.label
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def codegen(self):
         return self.label
 
@@ -198,7 +225,6 @@ def ast_test():
     f2.tag('f2')
     # program (nest)
     p = Program([f1, f2])
-
     print p.codegen()
 
 if __name__ == "__main__":
