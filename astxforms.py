@@ -1,21 +1,22 @@
 #!/usr/bin/python
 import sys, os
+from transformations import Transformation
 from ast import *
 
 class ASTXform:
     def __init__(self, ast):
         self.ast = ast
 
-    def code_motion(self):
+    def code_motion(self, out_ord):
         pass
 
-    def inter_change(self):
+    def inter_change(self, dim1, dim2):
         pass
 
-    def inlining(self):
+    def inlining(self, dim, call, label):
         pass
 
-    def strip_mining(self):
+    def strip_mining(self, dim, size):
         pass
 
     def codegen(self):
