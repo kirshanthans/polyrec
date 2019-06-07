@@ -201,7 +201,7 @@ class Field(Expr):
     def codegen(self):
         return self.label
 
-def ast_test():
+def nest():
     # function 1
     g1 = IfStmt(BinOp("<=", Var('i'), Var('N')), ReturnStmt(None), None)
     g1.tag('g1')
@@ -211,7 +211,7 @@ def ast_test():
     t1.tag('t1')
     ss1 = [g1, t1, r1]
     f1  = Function('void', 'f1', [Param('int', Var('i')), Param('Node *', Var('n'))], [g1, t1, r1])
-    f1.tag('f1')
+    f1.tag('d1')
     # function 2
     g2 = IfStmt(BinOp("==", Var('n'), Const('NULL')), ReturnStmt(None), None)
     g2.tag('g2')
@@ -222,9 +222,13 @@ def ast_test():
     s1 = Assignment(BinOp('->', Var('n'), Array(Var('x'),Var('i'))), BinOp('+', BinOp('->', Var('n'), Array(Var('x'),Var('i'))),Number(1)))
     s1.tag('s1')
     f2 = Function('void', 'f2', [Param('int', Var('i')), Param('Node *', Var('n'))], [g2, r2l, r2r, s1])
-    f2.tag('f2')
+    f2.tag('d2')
     # program (nest)
     p = Program([f1, f2])
+    return p
+
+def ast_test():
+    p = nest()
     print p.codegen()
 
 if __name__ == "__main__":

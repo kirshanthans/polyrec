@@ -41,29 +41,51 @@ class ASTXform:
     def __init__(self, ast):
         self.ast = ast
     
-    def code_motion(self, out_ord):
-        pass
+    def code_motion(self, xf):
+        assert xf.in_dim == len(self.ast.children)
+        assert xf.name == "cm"
 
-    def inter_change(self, dim1, dim2):
-        pass
+    def inter_change(self, xf):
+        assert xf.in_dim == len(self.ast.children)
+        assert xf.name == "ic"
 
-    def inlining(self, dim, call, label):
-        pass
+    def inlining(self, xf):
+        assert xf.in_dim == len(self.ast.children)
+        assert xf.name == "il"
 
-    def strip_mining(self, dim, size):
-        pass
+    def strip_mining(self, xf):
+        assert xf.in_dim == len(self.ast.children)
+        assert xf.name == "sm"
 
     def codegen(self):
-        
         return self.ast.codegen()
 
 def cm_test():
-    ast = None 
+    p = nest()
+    # Dimensions
+    in_dim  = 2
+    out_dim = 2
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    # Output order
+    out_ord = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+
+    xf = Transformation(
+        name         ='cm',
+        in_dim       = in_dim,
+        out_dim      = out_dim,
+        in_dim_type  = in_dim_type,
+        in_alp       = in_alp,
+        in_ord       = in_ord,
+        out_ord      = out_ord)
     
-    xform = ASTXform(ast)
+    xform = ASTXform(p)
     
     print "Input Program"
-    xform.codegen()
+    xform.codegen(xf)
    
     xform.code_motion()
     
