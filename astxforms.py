@@ -3,6 +3,9 @@ import sys, os
 from transformations import Transformation
 from ast import *
 
+def change_callee(callexpr, callee):
+    return CallExpr(callee, callexpr.args)
+
 def replace_var(node, var, binop):
     if isinstance(node, IfStmt):
         return IfStmt(replace_var(node.cond, var, binop), 
@@ -37,6 +40,7 @@ def replace_var(node, var, binop):
 def add_guardcond(cond, stmt):
     return IfStmt(cond, stmt, None)
 
+
 class ASTXform:
     def __init__(self, ast):
         self.ast = ast
@@ -67,14 +71,14 @@ class ASTXform:
         assert xf.in_dim == len(self.ast.children)
         assert xf.name == "cm"
 
-        order = xf.out_ord        
+        out_ord = xf.out_ord        
         
         assert len(order) == len(self.mstmts)
         assert len(order) == len(self.mtynm)
         assert len(order) == len(self.mprms)
         
-        funcs = [] #
-        for ord_d, i in zip(order, xrange(len(order))):
+        funcs = [] 
+        for ord_d, i in zip(out_ord, xrange(len(out_ord))):
             t = 'd' + str(i+1)
             stms = [self.mstmts[t]['g'+str(i+1)]]
             for l in ord_d[1:]:
@@ -114,7 +118,7 @@ class ASTXform:
                 for l in ord_d[1:]:
                     stm = None
                     if l[0] == 'r':
-                        stm = self.mstmts[t2]['r'+str(i+2)+l[2:]]
+                        stm = change_callee(self.mstmts[t2]['r'+str(i+2)+l[2:]], self.mtynm[t1][1])
                     elif l[0] == 't' or l[0] == 's':
                         stm = self.mstmts[t1][l]
                     
@@ -135,7 +139,7 @@ class ASTXform:
                 for l in ord_d[1:]:
                     stm = None
                     if l[0] == 'r':
-                        stm = self.mstmts[t1]['r'+str(i)+l[2:]]
+                        stm = change_callee(self.mstmts[t1]['r'+str(i)+l[2:]], self.mtynm[t2][1])
                     elif l[0] == 't' or l[0] == 's':
                         stm = self.mstmts[t2][l]
                     
@@ -154,6 +158,12 @@ class ASTXform:
         assert xf.in_dim == len(self.ast.children)
         assert xf.name == "il"
 
+        dim_inline  = xf.dim_inline
+        call_inline = xf.call_inline
+        label       = xf.label
+
+        out_ord = xf.out_ord
+
     def strip_mining(self, xf):
         assert xf.in_dim == len(self.ast.children)
         assert xf.name == "sm"
@@ -164,6 +174,9 @@ class ASTXform:
 def cm_test():
     print "Code Motion Test"
     p = nest()
+    xform = ASTXform(p)
+    print "Input Program"
+    print xform.codegen()
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -184,11 +197,6 @@ def cm_test():
         in_ord       = in_ord,
         out_ord      = out_ord)
     
-    xform = ASTXform(p)
-    
-    print "Input Program"
-    print xform.codegen()
-   
     xform.code_motion(xf)
     
     print "Output Program"
@@ -197,6 +205,7 @@ def cm_test():
 def ic_test():
     print "Interchange Test"
     p = nest()
+    xform = ASTXform(p)
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -216,8 +225,6 @@ def ic_test():
         dim_i1       = 0,
         dim_i2       = 1)
     
-    xform = ASTXform(p)
-    
     print "Input Program"
     print xform.codegen()
    
@@ -226,8 +233,51 @@ def ic_test():
     print "Output Program"
     print xform.codegen()
 
+def composition_test():
+    print "Composition Test"
+    p = nest()
+    xform = ASTXform(p)
+    print "Input Program"
+    print xform.codegen()
+    # Dimensions
+    dim  = 2
+    # Type of dimensions
+    dim_type = [1, 2]
+
+    # code-motion 
+    alp1  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    ord1  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    ord2  = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+
+    xf1 = Transformation(
+        name         = 'cm',
+        in_dim       = dim,
+        out_dim      = dim,
+        in_dim_type  = dim_type,
+        in_alp       = alp1,
+        in_ord       = ord1,
+        out_ord      = ord2)
+    xform.code_motion(xf1)
+    # Interchange
+    dim1_ = 0
+    dim2_ = 1
+    
+    xf2 = Transformation(
+        name         ='ic',
+        in_dim       = xf1.out_dim,
+        out_dim      = xf1.out_dim,
+        in_dim_type  = xf1.out_dim_type,
+        in_alp       = xf1.out_alp,
+        in_ord       = xf1.out_ord,
+        dim_i1       = dim1_,
+        dim_i2       = dim2_)
+    xform.inter_change(xf2)
+
+    print "Output Program"
+    print xform.codegen()
+
 if __name__ == "__main__":
-    ic_test()
+    composition_test()
 
 
         
