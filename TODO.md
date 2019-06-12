@@ -1,14 +1,17 @@
 # TODO List
 
 ## Sections
+* [General](#general)
 * [Transformations](#transformations)
 * [Dependence Test](#dependence-test)
 * [Witness Tuple Generation](#witness-tuple-generation)
 * [Completion Search](#completion-search)
 * [Code Generation](#code-generation)
 
+### General
+
 ### Transformations
-* Successive inlining
+* testing successive inlining
 
 ### Dependence Test
 * Support for various prefixes
@@ -22,6 +25,7 @@
 * Support strip-mining
 
 ### Code Generation
+* Analyzing and tagging the AST 
 * Integrate C99 parser
 
          

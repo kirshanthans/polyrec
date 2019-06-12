@@ -164,7 +164,51 @@ class ASTXform:
         call_inline = xf.call_inline
         label       = xf.label
 
+        print "dim_inline: ", dim_inline
+        print "call_inline: ", call_inline
+        print "label: ", label
+
+        call_label = xf.in_alp[dim_inline][call_inline]
+
+        print "call_label: ", call_label
+
         in_ord, out_ord = xf.in_ord, xf.out_ord
+
+        funcs = [] 
+        for ord_d, i in zip(out_ord, xrange(len(out_ord))):
+            t = 'd' + str(i+1)
+            stms = [self.mstmts[t]['g'+str(i+1)]]
+            
+            if i != dim_inline:
+                for l in ord_d[1:]:
+                    stms.append(self.mstmts[t][l])
+            else:
+                in_ord_d = in_ord[i]
+                for l, pos in zip(in_ord_d, xrange(len(in_ord_d))):
+                    if pos == 0:
+                        continue
+                    if l != call_label:
+                        stms.append(self.mstmts[t][l])
+                    else:
+                        inline_stms = []
+                        inline_labl = ord_d[pos:pos+len(in_ord_d[1:])]
+
+                        in_stmts = []
+                        for inl in in_ord_d[1:]:
+                            in_stmts.append(self.mstmts[t][inl])
+                        
+                        assert len(inline_labl) == len(in_stmts)
+                        for inl,inst zip(inline_labl, in_stmts):
+
+                        for st in inline_stms:
+                            stms.append(st)
+            
+            f = Function(self.mtynm[t][0], self.mtynm[t][1], self.mprms[t], stms)
+            f.set_tag(t)
+            funcs.append(f)
+        
+        self.ast = Program(funcs)
+        self.tag_map()
 
     def strip_mining(self, xf):
         assert xf.in_dim == len(self.ast.children)
@@ -235,6 +279,37 @@ def ic_test():
     print "Output Program"
     print xform.codegen()
 
+def il_test():
+    print "Code Motion Test"
+    p = nest()
+    xform = ASTXform(p)
+    print "Input Program"
+    print xform.codegen()   
+    # Dimensions
+    in_dim  = 2
+    out_dim = 2
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+
+    xf = Transformation(
+        name        = 'il',
+        in_dim      = in_dim,
+        out_dim     = out_dim,
+        in_dim_type = in_dim_type,
+        in_alp      = in_alp,
+        in_ord      = in_ord,
+        dim_inline  = 1,
+        call_inline = 1,
+        label       = 'l')
+    
+    xform.inlining(xf)
+    
+    #print "Output Program"
+    #print xform.codegen()
+
 def composition_test():
     print "Composition Test"
     p = nest()
@@ -279,7 +354,7 @@ def composition_test():
     print xform.codegen()
 
 if __name__ == "__main__":
-    composition_test()
+    il_test()
 
 
         
