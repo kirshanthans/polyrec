@@ -311,7 +311,7 @@ def nest():
     r1.set_tag('r1')
     # argumets
     a1t1 = Var('i')
-    a2t1.set_tag('d1')
+    a1t1.set_tag('d1')
     a2t1 = Var('n')
     a2t1.set_tag('d2')
     # trs call expr

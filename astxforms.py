@@ -37,11 +37,14 @@ def replace_var(node, var, binop):
         else:
             return Var(node.name)
 
-def add_guardcond(cond, stmt):
-    return IfStmt(cond, stmt, None)
-
 def neg_cond(cond):
     return UnOp('~', cond)
+
+def add_guardcond(cond, stmt):
+    return IfStmt(neg_cond(cond), stmt, None)
+
+def inline_stmt(cond, binop, var, stmt):
+    return add_guardcond(cond, replace_var(stmt, var, binop))
 
 class ASTXform:
     def __init__(self, ast):
@@ -75,9 +78,9 @@ class ASTXform:
 
         out_ord = xf.out_ord        
         
-        assert len(order) == len(self.mstmts)
-        assert len(order) == len(self.mtynm)
-        assert len(order) == len(self.mprms)
+        assert len(out_ord) == len(self.mstmts)
+        assert len(out_ord) == len(self.mtynm)
+        assert len(out_ord) == len(self.mprms)
         
         funcs = [] 
         for ord_d, i in zip(out_ord, xrange(len(out_ord))):
@@ -198,7 +201,8 @@ class ASTXform:
                             in_stmts.append(self.mstmts[t][inl])
                         
                         assert len(inline_labl) == len(in_stmts)
-                        for inl,inst zip(inline_labl, in_stmts):
+                        for inl,inst in zip(inline_labl, in_stmts):
+                            pass
 
                         for st in inline_stms:
                             stms.append(st)
@@ -242,7 +246,6 @@ def cm_test():
         in_alp       = in_alp,
         in_ord       = in_ord,
         out_ord      = out_ord)
-    
     xform.code_motion(xf)
     
     print "Output Program"
@@ -252,6 +255,8 @@ def ic_test():
     print "Interchange Test"
     p = nest()
     xform = ASTXform(p)
+    print "Input Program"
+    print xform.codegen()
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -270,10 +275,6 @@ def ic_test():
         in_ord       = in_ord,
         dim_i1       = 0,
         dim_i2       = 1)
-    
-    print "Input Program"
-    print xform.codegen()
-   
     xform.inter_change(xf)
     
     print "Output Program"
@@ -304,7 +305,6 @@ def il_test():
         dim_inline  = 1,
         call_inline = 1,
         label       = 'l')
-    
     xform.inlining(xf)
     
     #print "Output Program"
@@ -335,6 +335,7 @@ def composition_test():
         in_ord       = ord1,
         out_ord      = ord2)
     xform.code_motion(xf1)
+    
     # Interchange
     dim1_ = 0
     dim2_ = 1
