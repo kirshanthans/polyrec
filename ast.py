@@ -20,6 +20,32 @@ class Program(ASTNode):
         
         return program_string
 
+    def getord(self):
+        mf = {}
+        dim = len(self.funcs)
+
+        for f in self.funcs:
+            mf[f.tag] = f.getord()
+
+        order = []
+        for i in xrange(dim):
+            order.append(mf['d'+str(i+1)])
+
+        return order
+
+    def getalp(self):
+        mf = {}
+        dim = len(self.funcs)
+
+        for f in self.funcs:
+            mf[f.tag] = f.getalp()
+
+        alph = []
+        for i in xrange(dim):
+            alph.append(mf['d'+str(i+1)])
+
+        return alph 
+
 class Function(ASTNode):
     def __init__(self, typ, name, params, stmts):
         self.typ    = typ
@@ -51,6 +77,34 @@ class Function(ASTNode):
         func_string += body_string + '}\n'
         
         return func_string
+
+    def getord(self):
+
+        order = ['e']
+        for s in self.stmts:
+            t = s.tag
+            if t[0] == 'g':
+                continue
+            order.append(t)
+
+        return order
+    
+    def getalp(self):
+
+        alph = ['e']
+        rec = []
+        trs = []
+        for s in self.stmts:
+            t = s.tag
+            if t[0] == 'g':
+                continue
+            elif t[0] == 'r':
+                rec.append(t)
+            elif t[0] == 't' or t[0] == 's':
+                trs.append(t)
+
+        alph = alph + rec + trs
+        return alph
 
 class Param(ASTNode):
     def __init__(self, typ, var):
@@ -169,6 +223,17 @@ class BinOp(Expr):
 
         return binop_string
 
+class UnOp(Expr):
+    def __init__(self, op, expr):
+        self.op   = op
+        self.expr = expr 
+        self.children = [expr]
+    
+    def codegen(self):
+        unop_string = self.op + '(' + self.expr.codegen() + ')'
+
+        return unop_string
+
 class Var(Expr):
     def __init__(self, name):
         self.name = name
@@ -204,7 +269,7 @@ class Field(Expr):
 def nest():
     prms = [Param('int', Var('i')), Param('Node *', Var('n'))] 
     # function 1
-    g1 = IfStmt(BinOp("<=", Var('i'), Var('N')), ReturnStmt(None), None)
+    g1 = IfStmt(BinOp(">=", Var('i'), Var('N')), ReturnStmt(None), None)
     g1.set_tag('g1')
     r1 = CallExpr('f1', [BinOp('+', Var('i'), Number(1)), Var('n')])
     r1.set_tag('r1')
@@ -231,6 +296,8 @@ def nest():
 def ast_test():
     p = nest()
     print p.codegen()
+    print p.getalp()
+    print p.getord()
 
 if __name__ == "__main__":
     ast_test()

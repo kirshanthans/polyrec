@@ -40,6 +40,8 @@ def replace_var(node, var, binop):
 def add_guardcond(cond, stmt):
     return IfStmt(cond, stmt, None)
 
+def neg_cond(cond):
+    return UnOp('~', cond)
 
 class ASTXform:
     def __init__(self, ast):
@@ -162,7 +164,7 @@ class ASTXform:
         call_inline = xf.call_inline
         label       = xf.label
 
-        out_ord = xf.out_ord
+        in_ord, out_ord = xf.in_ord, xf.out_ord
 
     def strip_mining(self, xf):
         assert xf.in_dim == len(self.ast.children)
