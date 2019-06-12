@@ -20,6 +20,22 @@ class Program(ASTNode):
         
         return program_string
 
+    def getdim(self):
+        return len(self.funcs)
+
+    def getdimtype(self):
+        mdim = {}
+        dim = len(self.funcs)
+
+        for f in self.funcs:
+            mdim[f.tag] = f.getdimtype()
+
+        dim_type = []
+        for i in xrange(dim):
+            dim_type.append(mdim['d'+str(i+1)])
+        
+        return dim_type
+
     def getord(self):
         mf = {}
         dim = len(self.funcs)
@@ -105,6 +121,16 @@ class Function(ASTNode):
 
         alph = alph + rec + trs
         return alph
+
+    def getdimtype(self):
+
+        c = 0
+        for s in self.stmts:
+            t = s.tag
+            if t[0] == 'r':
+                c += 1
+
+        return c
 
 class Param(ASTNode):
     def __init__(self, typ, var):
@@ -296,6 +322,8 @@ def nest():
 def ast_test():
     p = nest()
     print p.codegen()
+    print p.getdim()
+    print p.getdimtype()
     print p.getalp()
     print p.getord()
 
