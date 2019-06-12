@@ -23,8 +23,8 @@ class Transformation:
                 out_ord      = self.out_ord)
         
         elif self.name == 'ic':
-            dim_i1            = kwargs.get('dim_i1')
-            dim_i2            = kwargs.get('dim_i2')
+            self.dim_i1            = kwargs.get('dim_i1')
+            self.dim_i2            = kwargs.get('dim_i2')
 
             self.fst, self.out_dim_type, self.out_alp, self.out_ord = Transformation.interchange(
                 in_dim       = self.in_dim,
@@ -32,13 +32,13 @@ class Transformation:
                 in_dim_type  = self.in_dim_type,
                 in_alp       = self.in_alp,
                 in_ord       = self.in_ord,
-                dim_i1       = dim_i1,
-                dim_i2       = dim_i2)
+                dim_i1       = self.dim_i1,
+                dim_i2       = self.dim_i2)
         
         elif self.name == 'il':
-            dim_inline  = kwargs.get('dim_inline')
-            call_inline = kwargs.get('call_inline')
-            label       = kwargs.get('label')
+            self.dim_inline  = kwargs.get('dim_inline')
+            self.call_inline = kwargs.get('call_inline')
+            self.label       = kwargs.get('label')
 
             self.fst, self.out_dim_type, self.out_alp, self.out_ord = Transformation.inlining(
                 in_dim      = self.in_dim,
@@ -46,13 +46,13 @@ class Transformation:
                 in_dim_type = self.in_dim_type,
                 in_alp      = self.in_alp,
                 in_ord      = self.in_ord,
-                dim_inline  = dim_inline,
-                call_inline = call_inline,
-                label       = label)
+                dim_inline  = self.dim_inline,
+                call_inline = self.call_inline,
+                label       = self.label)
         
         elif self.name == 'sm':
-            dim_strip  = kwargs.get('dim_strip')
-            strip_size = kwargs.get('strip_size')
+            self.dim_strip  = kwargs.get('dim_strip')
+            self.strip_size = kwargs.get('strip_size')
             
             self.fst, self.out_dim_type, self.out_alp, self.out_ord = Transformation.strip_mining(
                 in_dim      = self.in_dim,
@@ -60,8 +60,8 @@ class Transformation:
                 in_dim_type = self.in_dim_type,
                 in_alp      = self.in_alp,
                 in_ord      = self.in_ord,
-                dim_strip   = dim_strip,
-                strip_size  = strip_size)
+                dim_strip   = self.dim_strip,
+                strip_size  = self.strip_size)
         
         else:
             self.out_dim_type = kwargs.get('out_dim_type')

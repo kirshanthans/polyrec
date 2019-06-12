@@ -4,7 +4,7 @@ class ASTNode:
         self.tag = None
         self.children = []
 
-    def tag(self, tg):
+    def set_tag(self, tg):
         self.tag = tg
 
 class Program(ASTNode):
@@ -205,25 +205,25 @@ def nest():
     prms = [Param('int', Var('i')), Param('Node *', Var('n'))] 
     # function 1
     g1 = IfStmt(BinOp("<=", Var('i'), Var('N')), ReturnStmt(None), None)
-    g1.tag('g1')
+    g1.set_tag('g1')
     r1 = CallExpr('f1', [BinOp('+', Var('i'), Number(1)), Var('n')])
-    r1.tag('r1')
+    r1.set_tag('r1')
     t1 = CallExpr('f2', [Var('i'), Var('n')])
-    t1.tag('t1')
+    t1.set_tag('t1')
     ss1 = [g1, t1, r1]
     f1  = Function('void', 'f1', prms, [g1, t1, r1])
-    f1.tag('d1')
+    f1.set_tag('d1')
     # function 2
     g2 = IfStmt(BinOp("==", Var('n'), Const('NULL')), ReturnStmt(None), None)
-    g2.tag('g2')
+    g2.set_tag('g2')
     r2l = CallExpr('f2', [Var('i'), BinOp('->', Var('n'), Field('l'))])
-    r2l.tag('r2l')
+    r2l.set_tag('r2l')
     r2r = CallExpr('f2', [Var('i'), BinOp('->', Var('n'), Field('r'))])
-    r2r.tag('r2r')
+    r2r.set_tag('r2r')
     s1 = Assignment(BinOp('->', Var('n'), Array(Var('x'),Var('i'))), BinOp('+', BinOp('->', Var('n'), Array(Var('x'),Var('i'))),Number(1)))
-    s1.tag('s1')
+    s1.set_tag('s1')
     f2 = Function('void', 'f2', prms, [g2, r2l, r2r, s1])
-    f2.tag('d2')
+    f2.set_tag('d2')
     # program (nest)
     p = Program([f1, f2])
     return p
