@@ -145,15 +145,19 @@ The ``codegen()`` function returns the source code to current AST held by ASTXfo
 * ``./demo``
 
     Print info about an AST (dimensions, dimension types, order) and generates the code. 
+
 * ``./demo transform``
 
     Takes an input order of labels, performs composition of basic transforms and prints out the output order of labels
+
 * ``./demo deptest``
     
     Constructs a witness tuple from multi-tape regular expressions, create a Dependence object and check whether this dependence is preserved or not by a transformation. 
+
 * ``./demo complete``
 
     Constructs a completion object with dependence and a partial transformation, prints potential transformations and valid transformations.
+
 * ``./demo codegen``
 
     Takes an input AST, performs chain of basic AST transformations and generates the code.
