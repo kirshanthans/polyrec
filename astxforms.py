@@ -86,6 +86,18 @@ class ASTXform:
                 m[st.tag] = st # add all statements to the corresponding function map
             self.mstmts[t] = m
 
+    def transform(self, xf):
+        if xf.name == "cm":
+            self.code_motion(xf)
+        elif xf.name == "ic":
+            self.inter_change(xf)
+        elif xf.name == "il":
+            self.inlining(xf)
+        elif xf.name == "sm":
+            self.strip_mining(xf)
+        else:
+            assert False
+
     def code_motion(self, xf):
         assert xf.in_dim == len(self.ast.children)
         assert xf.name == "cm"
@@ -253,6 +265,7 @@ class ASTXform:
     def strip_mining(self, xf):
         assert xf.in_dim == len(self.ast.children)
         assert xf.name == "sm"
+        pass
 
     def codegen(self):
         return self.ast.codegen()
@@ -282,7 +295,7 @@ def cm_test():
         in_alp       = in_alp,
         in_ord       = in_ord,
         out_ord      = out_ord)
-    xform.code_motion(xf)
+    xform.transform(xf)
     
     print "Output Program"
     print xform.codegen()
@@ -311,7 +324,7 @@ def ic_test():
         in_ord       = in_ord,
         dim_i1       = 0,
         dim_i2       = 1)
-    xform.inter_change(xf)
+    xform.transform(xf)
     
     print "Output Program"
     print xform.codegen()
@@ -341,7 +354,7 @@ def il_test():
         dim_inline  = 1,
         call_inline = 1,
         label       = 'l')
-    xform.inlining(xf)
+    xform.transform(xf)
     
     print "Output Program"
     print xform.codegen()
@@ -370,7 +383,7 @@ def composition_test():
         in_alp       = alp1,
         in_ord       = ord1,
         out_ord      = ord2)
-    xform.code_motion(xf1)
+    xform.transform(xf1)
     
     # Interchange
     dim1_ = 0
@@ -385,7 +398,7 @@ def composition_test():
         in_ord       = xf1.out_ord,
         dim_i1       = dim1_,
         dim_i2       = dim2_)
-    xform.inter_change(xf2)
+    xform.transform(xf2)
     
     # Inline
     dim_il   = 1
@@ -402,11 +415,10 @@ def composition_test():
         dim_inline  = dim_il,
         call_inline = call_il,
         label       = label_il)
-    xform.inlining(xf3)
+    xform.transform(xf3)
     
     print "Output Program"
     print xform.codegen()
-
 
 if __name__ == "__main__":
     composition_test()
