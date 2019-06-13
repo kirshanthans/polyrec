@@ -183,7 +183,6 @@ class ASTXform:
         self.ast = Program(funcs)
         self.tag_map()
 
-
     def inlining(self, xf):
         assert xf.in_dim == len(self.ast.children)
         assert xf.name == "il"

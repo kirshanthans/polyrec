@@ -26,6 +26,7 @@
 
 ### Code Generation
 * Analyzing and tagging the AST 
+* Simplifying the AST (constant folding etc.)
 * Integrate C99 parser
 
          
