@@ -29,7 +29,19 @@ Code in this repository implements the *PolyRec* framework described in the [pap
 ```python
 from transformations import Transformation
 ```
+A transformation object is defined as shown below.
 
+```python
+xf = Transformation(
+     in_dim      = in_dim,   # size of input nest
+     out_dim     = out_dim,  # size of output nest
+     in_dim_type = dim_type, # a list, ith element is #calls in ith dimension
+     in_alp      = in_alp,   # input labels
+     in_ord      = in_ord,   # input label order
+     ...)                    # other parameters for different transformations
+```
+
+Other parameters differ between transformation and shown in the table below.
 | Transformation | Parameters |
 | --- | --- |
 | Code Motion | Order (ord) |
