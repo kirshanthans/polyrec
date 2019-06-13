@@ -30,7 +30,6 @@ Code in this repository implements the *PolyRec* framework described in the [pap
 from transformations import Transformation
 ```
 A transformation object is defined as shown below.
-
 ```python
 xf = Transformation(
      in_dim      = in_dim,   # size of input nest
@@ -41,7 +40,7 @@ xf = Transformation(
      ...)                    # other parameters for different transformations
 ```
 
-Other parameters differ between transformation and shown in the table below.
+Other parameters differ between basic transformations and shown in the table below.
 
 | Transformation | Parameters |
 | --- | --- |
@@ -50,13 +49,18 @@ Other parameters differ between transformation and shown in the table below.
 | Inlining | Dimension, Call, Label (d, c, l) |
 | Strip Mining | Dimension, Size (d, s) |
 
+The most important functionality of the transformation object is composition.
+
+``xf = xf1.compose(xf2)``
+
+Above piece of code composes ``xf1`` with ``xf2`` and returns a composed transformation object
+
 ### Witness Tuple Generation
 *Importing Module*
 ```python
 from witnesstuples import WitnessTuple
 ```
 A witness tuple is defined as shown below.
-
 ```python
 wt = WitnessTuple(
     dims     = dims,     # size of the nest
@@ -68,26 +72,32 @@ wt = WitnessTuple(
 
 wt.set_fsa() # setting up the automata from regular expressions
 ```
+A primitive multi-tape regular expression parser takes the regex1 and regex2. It supports '|' and '*' operators and single level of nesting with parentheses.
+
+For instance, the suffixes [t1, s1] and [r1+t1, s1] must be written as a list of list as follows, [[t1], [s1]] and [[r1, (r1)*, t1], [s1]].
+
+The ``set_fsa`` function will setup the automata that accept these regular expressions.
 
 ### Legality Checking 
 *Importing Module*
 ```python
 from dependencetest import Dependence 
 ```
-
+A dependence object is created as shown below.
 ```python
 dp = Dependence(wt) # creating a dependence object with a witness tuple
 
 if dp.test(xf): # checking the dependence on a transformation object
     ...
 ```
-
+The ``test(xf)`` function takes a tranformation object as an argument and check whether the dependence is broken by it or not. ``False`` implies a broken dependence and ``True`` implies otherwise.
 
 ### Completion
 *Importing Module*
 ```python
 from completion import Completion 
 ```
+A completion object is constructed and used as shown below.
 ```python
 cp = Completion(
     in_dim      = in_dim,      # size of the input nest
@@ -102,8 +112,15 @@ cp.print_report()       # print diagnostics
 cp.completion_search()  # search for potential transform completion
 cp.print_pxforms()      # print potential completions
 cp.completion_valid()   # check the legality of the potential completions
-cp.print_vxforms()       # print the legal completions 
+cp.print_vxforms()      # print the legal completions 
 ```
+A partial order is written by specifying an order between the kind of statements we want in the output program.
+There are three kinds of statements recursive calls ('r'), transfer calls ('t') and computations ('s').
+For instance [['r', 't'],['r', 'r', 's']] is a partial order.
+
+``cp.pxforms`` gives a list of transformation object chains (list of basic transformations) that could arrive arrive at the partial order.
+
+``cp.vxforms`` gives a list of transformation object chains that are legal and complete the partial order.
 
 ### Code Generation
 *Importing Modules*
@@ -111,6 +128,7 @@ cp.print_vxforms()       # print the legal completions
 from astxform import ASTXform
 from ast import *
 ```
+An AST transformation object is constructed as shown below.
 ```python
 p = ...             # tagged recursion nest ast
 xform = ASTXform(p) # creating an ast transform object
@@ -119,5 +137,24 @@ print xform.codegen() # input recursion nest code
 xform.transform(xf)   # applying the ast transformation
 print xform.codegen() # code for recusion nest after the transform
 ```
+The ``transform(xf)`` function takes a basic transformation object as input and performs the necessary AST modifications to realize the transformation.
+
+The ``codegen()`` function returns the source code to current AST held by ASTXform as string.
+
 ### Demo
+* ``./demo``
+
+    Print info about an AST (dimensions, dimension types, order) and generates the code. 
+* ``./demo transform``
+
+    Takes an input order of labels, performs composition of basic transforms and prints out the output order of labels
+* ``./demo deptest``
+    
+    Constructs a witness tuple from multi-tape regular expressions, create a Dependence object and check whether this dependence is preserved or not by a transformation. 
+* ``./demo complete``
+
+    Constructs a completion object with dependence and a partial transformation, prints potential transformations and valid transformations.
+* ``./demo codegen``
+
+    Takes an input AST, performs chain of basic AST transformations and generates the code.
 
