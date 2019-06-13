@@ -3,7 +3,21 @@ import sys, os
 from transformations import Transformation
 from ast import *
 
-def change_callee(callexpr, callee):
+def switch_tags(nodes, t1, t2):
+    if isinstance(nodes, list):
+        for n in nodes:
+            if n.tag == t1:
+                n.set_tag(t2)
+            elif n.tag == t2:
+                n.set_tag(t1)
+    else:
+        if nodes.tag == t1:
+            nodes.set_tag(t2)
+        elif nodes.tag == t2:
+            nodes.set_tag(t1)
+
+def change_callee(callexpr, callee, t1, t2):
+    switch_tags(callexpr.args, t1, t2)
     return CallExpr(callee, callexpr.args)
 
 def replace_var(node, var, binop):
@@ -100,6 +114,8 @@ class ASTXform:
         assert xf.name == "ic"
 
         dim = xf.dim_i1
+        t1 = 'd' + str(dim+1) 
+        t2 = 'd' + str(dim+2)
 
         in_ord, out_ord = xf.in_ord, xf.out_ord
 
@@ -109,102 +125,123 @@ class ASTXform:
                 t = 'd' + str(i+1)
                 stms = [self.mstmts[t]['g'+str(i+1)]]
                 for l in ord_d[1:]:
-                    stms.append(self.mstmts[t][l])
+                    if l[0] == 'r' or l[0] == 't':
+                        stms.append(change_callee(self.mstmts[t][l], self.mstmts[t][l].callee, t1, t2))
+                    else:
+                        stms.append(self.mstmts[t][l])
+                
+                switch_tags(self.mprms[t], t1, t2)
                 f = Function(self.mtynm[t][0], self.mtynm[t][1], self.mprms[t], stms)
                 f.set_tag(t)
                 funcs.append(f)
             
             elif i == dim:
-                t1 = 'd' + str(i+1) 
-                t2 = 'd' + str(i+2)
                 guard = self.mstmts[t2]['g'+str(i+2)]
                 guard.set_tag('g'+str(i+1))
                 stms = [guard]
                 for l in ord_d[1:]:
                     stm = None
                     if l[0] == 'r':
-                        stm = change_callee(self.mstmts[t2]['r'+str(i+2)+l[2:]], self.mtynm[t1][1])
-                    elif l[0] == 't' or l[0] == 's':
+                        stm = change_callee(self.mstmts[t2]['r'+str(i+2)+l[2:]], self.mtynm[t1][1], t1, t2)
+                    elif l[0] == 't':
+                        stm = change_callee(self.mstmts[t1][l], self.mstmts[t1][l].callee, t1, t2)
+                    elif l[0] == 's':
                         stm = self.mstmts[t1][l]
                     
                     assert stm != None
                     stm.set_tag(l)
                     stms.append(stm)
                 
+                switch_tags(self.mprms[t1], t1, t2)
                 f = Function(self.mtynm[t1][0], self.mtynm[t1][1], self.mprms[t1], stms)
                 f.set_tag(t1)
                 funcs.append(f)
 
             elif i == dim+1:
-                t1 = 'd' + str(i) 
-                t2 = 'd' + str(i+1)
                 guard = self.mstmts[t1]['g'+str(i)]
                 guard.set_tag('g'+str(i+1))
                 stms = [guard]
                 for l in ord_d[1:]:
                     stm = None
                     if l[0] == 'r':
-                        stm = change_callee(self.mstmts[t1]['r'+str(i)+l[2:]], self.mtynm[t2][1])
-                    elif l[0] == 't' or l[0] == 's':
+                        stm = change_callee(self.mstmts[t1]['r'+str(i)+l[2:]], self.mtynm[t2][1], t1, t2)
+                    elif l[0] == 't':
+                        stm = change_callee(self.mstmts[t2][l], self.mstmts[t2][l].callee, t1, t2)
+                    elif l[0] == 's':
                         stm = self.mstmts[t2][l]
                     
                     assert stm != None
                     stm.set_tag(l)
                     stms.append(stm)
 
+                switch_tags(self.mprms[t2], t1, t2)
                 f = Function(self.mtynm[t2][0], self.mtynm[t2][1], self.mprms[t2], stms)
                 f.set_tag(t2)
                 funcs.append(f)
-        
+
+
         self.ast = Program(funcs)
         self.tag_map()
+
 
     def inlining(self, xf):
         assert xf.in_dim == len(self.ast.children)
         assert xf.name == "il"
 
-        dim_inline  = xf.dim_inline
-        call_inline = xf.call_inline
-        label       = xf.label
-
-        print "dim_inline: ", dim_inline
-        print "call_inline: ", call_inline
-        print "label: ", label
+        dim_inline  = xf.dim_inline # dimension to inline
+        call_inline = xf.call_inline # call to inline
+        label       = xf.label # label added after inlining
 
         call_label = xf.in_alp[dim_inline][call_inline]
-
-        print "call_label: ", call_label
 
         in_ord, out_ord = xf.in_ord, xf.out_ord
 
         funcs = [] 
         for ord_d, i in zip(out_ord, xrange(len(out_ord))):
             t = 'd' + str(i+1)
-            stms = [self.mstmts[t]['g'+str(i+1)]]
+            guard = self.mstmts[t]['g'+str(i+1)]
+            stms = [guard]
             
-            if i != dim_inline:
+            if i != dim_inline: # copying the other dimensions as it is
                 for l in ord_d[1:]:
                     stms.append(self.mstmts[t][l])
             else:
-                in_ord_d = in_ord[i]
+                in_ord_d = in_ord[i] # input order of the inlining dimension
                 for l, pos in zip(in_ord_d, xrange(len(in_ord_d))):
-                    if pos == 0:
+                    if pos == 0: # escaping the empty symbol in the order
                         continue
-                    if l != call_label:
+                    if l != call_label: # copying statements that are non inlined as it is
                         stms.append(self.mstmts[t][l])
                     else:
+                        in_call_stm = self.mstmts[t][l] # call expr that is getting inlined
+                        ind_binop = None # Find the corresponding index var change to the inlining call expr 
+                        for a in in_call_stm.args:
+                            if a.tag == t:
+                                ind_binop = a
+                        
+                        ind_var = None # Find the corresponding index var for the dimension
+                        for p in self.mprms[t]:
+                            if p.tag == t:
+                                ind_var = p.var
+
+                        assert ind_binop != None
+                        assert ind_var != None
+
                         inline_stms = []
-                        inline_labl = ord_d[pos:pos+len(in_ord_d[1:])]
+                        inline_labl = ord_d[pos:pos+len(in_ord_d[1:])] # getting the output labels
 
                         in_stmts = []
-                        for inl in in_ord_d[1:]:
+                        for inl in in_ord_d[1:]: # taking all the stmts in the input function body
                             in_stmts.append(self.mstmts[t][inl])
-                        
-                        assert len(inline_labl) == len(in_stmts)
-                        for inl,inst in zip(inline_labl, in_stmts):
-                            pass
 
-                        for st in inline_stms:
+                        assert len(inline_labl) == len(in_stmts)
+
+                        for inl,inst in zip(inline_labl, in_stmts): # constructing the inlined stmts
+                            in_stm = inline_stmt(guard.cond, ind_binop, ind_var, inst)
+                            in_stm.set_tag(inl)
+                            inline_stms.append(in_stm)
+
+                        for st in inline_stms: # adding the inlined stmts to output function body
                             stms.append(st)
             
             f = Function(self.mtynm[t][0], self.mtynm[t][1], self.mprms[t], stms)
@@ -307,8 +344,8 @@ def il_test():
         label       = 'l')
     xform.inlining(xf)
     
-    #print "Output Program"
-    #print xform.codegen()
+    print "Output Program"
+    print xform.codegen()
 
 def composition_test():
     print "Composition Test"
@@ -350,12 +387,30 @@ def composition_test():
         dim_i1       = dim1_,
         dim_i2       = dim2_)
     xform.inter_change(xf2)
-
+    
+    # Inline
+    dim_il   = 1
+    call_il  = 1
+    label_il = 'n'
+    
+    xf3 = Transformation(
+        name        = 'il',
+        in_dim      = xf2.out_dim,
+        out_dim     = xf2.out_dim,
+        in_dim_type = xf2.out_dim_type,
+        in_alp      = xf2.out_alp,
+        in_ord      = xf2.out_ord,
+        dim_inline  = dim_il,
+        call_inline = call_il,
+        label       = label_il)
+    xform.inlining(xf3)
+    
     print "Output Program"
     print xform.codegen()
 
+
 if __name__ == "__main__":
-    il_test()
+    composition_test()
 
 
         

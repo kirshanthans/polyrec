@@ -293,11 +293,11 @@ class Field(Expr):
         return self.label
 
 def nest():
-    p1 = Param('int', Var('i')) 
-    p1.set_tag('d1')
-    p2 = Param('Node *', Var('n'))
-    p1.set_tag('d1')
-    prms = [p1, p2]
+    p11 = Param('int', Var('i')) 
+    p11.set_tag('d1')
+    p21 = Param('Node *', Var('n'))
+    p21.set_tag('d2')
+    prms1 = [p11, p21]
     # function 1
     g1 = IfStmt(BinOp(">=", Var('i'), Var('N')), ReturnStmt(None), None)
     g1.set_tag('g1')
@@ -319,9 +319,15 @@ def nest():
     t1.set_tag('t1')
     # functions
     ss1 = [g1, t1, r1]
-    f1  = Function('void', 'f1', prms, ss1)
+    f1  = Function('void', 'f1', prms1, ss1)
     f1.set_tag('d1')
     
+    
+    p12 = Param('int', Var('i')) 
+    p12.set_tag('d1')
+    p22 = Param('Node *', Var('n'))
+    p22.set_tag('d2')
+    prms2 = [p12, p22]    
     # function 2
     g2 = IfStmt(BinOp("==", Var('n'), Const('NULL')), ReturnStmt(None), None)
     g2.set_tag('g2')
@@ -346,7 +352,7 @@ def nest():
     s1.set_tag('s1')
     # function
     ss2 = [g2, r2l, r2r, s1]
-    f2 = Function('void', 'f2', prms, ss2)
+    f2 = Function('void', 'f2', prms2, ss2)
     f2.set_tag('d2')
     
     # program (nest)
