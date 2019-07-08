@@ -1,5 +1,7 @@
 # Composable, Sound Transformations of Nested Recursion and Loops
-[build]: https://travis-ci.org/kirshanthans/polyrec.svg?branch=master
+
+[![Build Status](https://travis-ci.org/kirshanthans/polyrec.svg?branch=master)](https://travis-ci.org/kirshanthans/polyrec)
+
 ## Contents
 * [Introduction](#introduction)
 * [Usage](#usage)
