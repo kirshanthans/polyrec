@@ -1,6 +1,6 @@
 # Composable, Sound Transformations of Nested Recursion and Loops
 
-[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+[![MIT license](http://img.shields.io/badge/license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.org/kirshanthans/polyrec.svg?branch=master)](https://travis-ci.org/kirshanthans/polyrec)
 
 ## Contents
