@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import itertools
 from transformations import Transformation
 from dependencetest import Dependence

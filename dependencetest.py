@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys, os
 from statemachines import MultiTapeFSA, MultiTapeFST
 from transformations import Transformation
