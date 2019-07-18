@@ -30,7 +30,7 @@ Code in this repository implements the *PolyRec* framework described in the [pap
 ### Writing Transformations
 *Importing Module*
 ```python
-from transformations import Transformation
+from polyrec.transformations import Transformation
 ```
 A transformation object is defined as shown below.
 ```python
@@ -61,7 +61,7 @@ Above piece of code composes ``xf1`` with ``xf2`` and returns a composed transfo
 ### Witness Tuple Generation
 *Importing Module*
 ```python
-from witnesstuples import WitnessTuple
+from polyrec.witnesstuples import WitnessTuple
 ```
 A witness tuple is defined as shown below.
 ```python
@@ -84,7 +84,7 @@ The ``set_fsa`` function will setup the automata that accept these regular expre
 ### Legality Checking 
 *Importing Module*
 ```python
-from dependencetest import Dependence 
+from polyrec.dependencetest import Dependence 
 ```
 A dependence object is created as shown below.
 ```python
@@ -98,7 +98,7 @@ The ``test(xf)`` function takes a tranformation object as an argument and check 
 ### Completion
 *Importing Module*
 ```python
-from completion import Completion 
+from polyrec.completion import Completion 
 ```
 A completion object is constructed and used as shown below.
 ```python
@@ -128,8 +128,8 @@ For instance [['r', 't'],['r', 'r', 's']] is a partial order.
 ### Code Generation
 *Importing Modules*
 ```python
-from astxform import ASTXform
-from ast import *
+from polyrec.astxform import ASTXform
+from polyrec.ast import *
 ```
 An AST transformation object is constructed as shown below.
 ```python
