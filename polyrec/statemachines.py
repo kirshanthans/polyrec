@@ -58,50 +58,50 @@ class MultiTapeFSA:
     
     def print_fsa(self):
         
-            print "nstates ", self.nstates
-            print ""
+            print("nstates ", self.nstates)
+            print()
       
-            print "Init States" 
+            print("Init States")
             for e in self.init_states:
-                print e,
-            print ""
+                print(e, end='')
+            print()
        
-            print "Final States "
+            print("Final States ")
             for e in self.final_states:
-                print e,
-            print ""
+                print(e, end='')
+            print()
         
-            print "Alphabet "
+            print("Alphabet ")
             for tape, dim in zip(self.alphabet, range(self.dims)):
-                print "Dim ", dim, ": ",
+                print("Dim ", dim, ": ", end='')
                 for e in tape:
-                    print e,
-                print ""
-            print ""
+                    print(e, end='')
+                print()
+            print()
 
-            print "Order "
+            print("Order ")
             for tape, dim in zip(self.order, range(self.dims)):
-                print "Dim ", dim, ": ",
+                print("Dim ", dim, ": ", end='')
                 for e in tape:
-                    print e,
-                print ""
-            print ""
+                    print(e, end='')
+                print()
+            print()
             
-            print "Transitions "
+            print("Transitions ")
             for e in sorted(self.transitions):
-                print e
-            print ""
+                print(e)
+            print()
 
-            print "Edges "
+            print("Edges ")
             for e in self.edges:
-                print e, self.edges[e]
+                print(e, self.edges[e])
 
     def print_prog(self):
 
-        for i in xrange(self.dims):
-            print "Dim ", i
+        for i in range(self.dims):
+            print("Dim ", i)
             for label in self.order[i][1:]:
-                print "\t", label
+                print("\t", label)
 
     def identity_fst(self):
 
@@ -115,7 +115,7 @@ class MultiTapeFSA:
     def unreachable_removal(self):
         unreachable_states = set(self.states)
         unreachable_states -= set(self.edges_in.keys())
-        unreacheable_states = unreachable_states.union(set(self.edges.keys())-set(self.edges_in.keys()).intersection(set(self.edges.keys())))
+        unreachable_states = unreachable_states.union(set(self.edges.keys())-set(self.edges_in.keys()).intersection(set(self.edges.keys())))
         unreachable_states -= set(self.init_states)
         
         new_states = list(set(self.states) - unreachable_states)
@@ -214,59 +214,59 @@ class MultiTapeFST:
     
     def print_fst(self):
         
-        print "nstates ", self.nstates
-        print ""
+        print("nstates ", self.nstates)
+        print()
       
-        print "Init States" 
+        print("Init States")
         for e in self.init_states:
-            print e,
-        print ""
+            print(e, end='')
+        print()
        
-        print "Final States "
+        print("Final States ")
         for e in self.final_states:
-            print e,
-        print ""
+            print(e, end='')
+        print()
         
-        print "Input Alphabet "
+        print("Input Alphabet ")
         for tape, dim in zip(self.alphabet_in, range(self.dims_in)):
-            print "Dim ", dim, ": ",
+            print("Dim ", dim, ": ", end='')
             for e in tape:
-                print e,
-            print ""
-        print ""
+                print(e, end='')
+            print()
+        print()
             
-        print "Input Order "
+        print("Input Order ")
         for tape, dim in zip(self.ord_in, range(self.dims_in)):
-            print "Dim ", dim, ": ",
+            print("Dim ", dim, ": ", end='')
             for e in tape:
-                print e,
-            print ""
-        print ""
+                print(e, end='')
+            print()
+        print()
         
-        print "Output Alphabet "
+        print("Output Alphabet ")
         for tape, dim in zip(self.alphabet_out, range(self.dims_out)):
-            print "Dim ", dim, ": ",
+            print("Dim ", dim, ": ", end='')
             for e in tape:
-                print e,
-            print ""
-        print ""
+                print(e, end='')
+            print()
+        print()
         
-        print "Output Order "
+        print("Output Order ")
         for tape, dim in zip(self.ord_out, range(self.dims_out)):
-            print "Dim ", dim, ": ",
+            print("Dim ", dim, ": ", end='')
             for e in tape:
-                print e,
-            print ""
-        print ""
+                print(e, end='')
+            print()
+        print()
         
-        print "Transitions "
+        print("Transitions ")
         for e in sorted(self.transitions):
-            print e
-        print ""
+            print(e)
+        print()
 
-        print "Edges "
+        print("Edges ")
         for e in self.edges:
-            print e, self.edges[e]
+            print(e, self.edges[e])
     
     def project_in(self):
         

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sys, os
-from statemachines import MultiTapeFSA
+from polyrec.statemachines import MultiTapeFSA
 
 class WitnessTuple:
     def __init__(self, dims, dim_type, alphabet, order, regex1, regex2):
@@ -27,7 +27,7 @@ class WitnessTuple:
         else:
             regx = self.regex2
             
-        for i in xrange(self.dims):
+        for i in range(self.dims):
             for exp in regx[i][:-1]:
                 if exp[-1] != '*':
                     n += 1
@@ -54,14 +54,14 @@ class WitnessTuple:
             n    = self.fsa2.nstates
         
         s_trans = n - (self.dims + 1)
-        for i in xrange(self.dims):
+        for i in range(self.dims):
             tup = ['e'] * self.dims
             tup[i] = regx[i][-1]
             fsa.add_transition(s_trans, s_trans+1, tuple(tup))
             s_trans += 1
         
         s_recur = 0
-        for i in xrange(self.dims):
+        for i in range(self.dims):
             for exp in regx[i][:-1]:
                 if exp[-1] != '*':
                     if '|' in exp:
@@ -134,28 +134,28 @@ def witness_test():
     rgx4 = [['t1'], ['(r2l|r2r)','s1']]
     rgx5 = [['r1','t1'], ['(r2l|r2r)','s1']]
 
-    print "Witness Tuple 1"
+    print("Witness Tuple 1")
     wtuple1 = WitnessTuple(dim, dim_type, alp1, ord1, rgx1, rgx2)
     wtuple1.set_fsa()
-    print "Suffix 1"
+    print("Suffix 1")
     wtuple1.fsa1.print_fsa()
-    print "Suffix 2"
+    print("Suffix 2")
     wtuple1.fsa2.print_fsa()
     
-    print "Witness Tuple 2"
+    print("Witness Tuple 2")
     wtuple2 = WitnessTuple(dim, dim_type, alp1, ord1, rgx1, rgx4)
     wtuple2.set_fsa()
-    print "Suffix 1"
+    print("Suffix 1")
     wtuple2.fsa1.print_fsa()
-    print "Suffix 2"
+    print("Suffix 2")
     wtuple2.fsa2.print_fsa()
     
-    print "Witness Tuple 3"
+    print("Witness Tuple 3")
     wtuple3 = WitnessTuple(dim, dim_type, alp1, ord1, rgx3, rgx5)
     wtuple3.set_fsa()
-    print "Suffix 1"
+    print("Suffix 1")
     wtuple3.fsa1.print_fsa()
-    print "Suffix 2"
+    print("Suffix 2")
     wtuple3.fsa2.print_fsa()
 
 if __name__ == "__main__":

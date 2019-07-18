@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import sys, os
-from statemachines import MultiTapeFSA, MultiTapeFST
+from polyrec.statemachines import MultiTapeFSA, MultiTapeFST
 
 class Transformation:
     def __init__(self, **kwargs):
@@ -70,11 +70,11 @@ class Transformation:
             self.fst          = kwargs.get('fst')
     
     def input_program(self):
-        print "\nInput Program"
+        print("\nInput Program")
         self.fst.project_in().print_prog()
     
     def output_program(self):
-        print "\nOutput Program"
+        print("\nOutput Program")
         self.fst.project_out().print_prog()
 
     def to_string(self):
@@ -129,8 +129,8 @@ class Transformation:
 
         assert len(in_alph) == len(out_alph)
         #call statements
-        for i in xrange(dim):
-            for j in xrange(dim_type[i]):
+        for i in range(dim):
+            for j in range(dim_type[i]):
                 tup_in  = ['e'] * dim 
                 tup_out = ['e'] * dim
 
@@ -139,7 +139,7 @@ class Transformation:
 
                 fst.add_transition(0, 0, tuple(tup_in), tuple(tup_out))
         #transfer-compute statements
-        for i in xrange(dim):
+        for i in range(dim):
             tup_in  = ['e'] * dim 
             tup_out = ['e'] * dim
 
@@ -164,9 +164,9 @@ class Transformation:
 
         assert len(in_alph) == len(out_alph)
 
-        for i in xrange(dim):
+        for i in range(dim):
             if i != dim_i1 or i != dim_i2:
-                for j in xrange(in_dim_type[i]):
+                for j in range(in_dim_type[i]):
                     tup_in  = ['e'] * dim 
                     tup_out = ['e'] * dim
                     
@@ -205,7 +205,7 @@ class Transformation:
 
             fst.add_transition(0, 0, tuple(tup_in), tuple(tup_out))
 
-        for i in xrange(dim):
+        for i in range(dim):
             tup_in  = ['e'] * dim 
             tup_out = ['e'] * dim
             
@@ -223,9 +223,9 @@ class Transformation:
         in_alph = fst.alphabet_in
         out_alph = fst.alphabet_out
 
-        for i in xrange(dim):
+        for i in range(dim):
             if i != dim_inline:
-                for j in xrange(in_dim_type[i]):
+                for j in range(in_dim_type[i]):
                     tup_in  = ['e'] * dim 
                     tup_out = ['e'] * dim
 
@@ -235,7 +235,7 @@ class Transformation:
                     fst.add_transition(0, 0, tuple(tup_in), tuple(tup_out))
                     fst.add_transition(dim+1, dim+1, tuple(tup_in), tuple(tup_out))
     
-        for i in xrange(dim):
+        for i in range(dim):
             if i != dim_inline:
                 tup_in  = ['e'] * dim 
                 tup_out = ['e'] * dim
@@ -279,13 +279,13 @@ class Transformation:
 
         in_alp  = fst.alphabet_in
         out_alp = fst.alphabet_out
-        in_ord  = fst.ord_in
-        out_ord = fst.ord_out
+        #in_ord  = fst.ord_in
+        #out_ord = fst.ord_out
 
         n = fst.nstates
 
-        for s in xrange(0, n, out_dim+1):
-            for d in xrange(in_dim):
+        for s in range(0, n, out_dim+1):
+            for d in range(in_dim):
                 if d == dim_strip:
                     #call statement of stripped dimensions
                     if (s+out_dim+1) < n:
@@ -299,7 +299,7 @@ class Transformation:
 
                 elif d < dim_strip:
                     #call statements non-stripped dimensions
-                    for j in xrange(in_dim_type[d]):
+                    for j in range(in_dim_type[d]):
                         tup_in  = ['e'] * in_dim
                         tup_out = ['e'] * out_dim
 
@@ -310,7 +310,7 @@ class Transformation:
 
                 elif d > dim_strip:
                     #call statements non-stripped dimensions
-                    for j in xrange(in_dim_type[d]):
+                    for j in range(in_dim_type[d]):
                         tup_in  = ['e'] * in_dim
                         tup_out = ['e'] * out_dim
 
@@ -336,8 +336,8 @@ class Transformation:
         fst.add_transition(n-out_dim-1, 0, tuple(tup_in), tuple(tup_out))
 
         #existing transfer statements
-        for s in xrange(1, n, out_dim+1):
-            for d in xrange(in_dim):
+        for s in range(1, n, out_dim+1):
+            for d in range(in_dim):
                 tup_in  = ['e'] * in_dim
                 tup_out = ['e'] * out_dim
                 if d < dim_strip:
@@ -378,7 +378,7 @@ class Transformation:
 
         n = len(alp)
 
-        for i in xrange(n):
+        for i in range(n):
             if n_alp[i] == e_symbol:
                 n_alp[i] = n_symbol
             if n_odr[i] == e_symbol:
@@ -470,7 +470,7 @@ class Transformation:
 
         # output alphabet
         out_alp = []
-        for i in xrange(dim):
+        for i in range(dim):
             if i != dim_inline:
                 out_alp.append(in_alp[i])
             else:
@@ -488,7 +488,7 @@ class Transformation:
 
         # output order
         out_ord = []
-        for i in xrange(dim):
+        for i in range(dim):
             if i != dim_inline:
                 out_ord.append(in_ord[i])
             else:
@@ -533,7 +533,7 @@ class Transformation:
         out_alp.append(new_dim_alp)
         out_ord.append(new_dim_ord)
 
-        for i in xrange(dim_strip, in_dim):
+        for i in range(dim_strip, in_dim):
             alp, odr = Transformation.shift_dim(in_alp[i], in_ord[i], i, i+1)
             out_alp.append(alp)
             out_ord.append(odr)
@@ -544,7 +544,7 @@ class Transformation:
         return fst, out_dim_type, out_alp, out_ord
 
 def cm_test():
-    print "Code Motion Test"
+    print("Code Motion Test")
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -569,7 +569,7 @@ def cm_test():
     xform.output_program()   
 
 def ic_test():
-    print "Interchange Test"
+    print("Interchange Test")
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -593,7 +593,7 @@ def ic_test():
     xform.output_program()  
 
 def il_test():
-    print "Inlining Test1"
+    print("Inlining Test1")
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -617,7 +617,7 @@ def il_test():
     xform1.input_program()
     xform1.output_program()
     
-    print "\nInlining Test2"
+    print("\nInlining Test2")
     xform2 = Transformation(
         name        = 'il',
         in_dim      = in_dim,
@@ -632,7 +632,7 @@ def il_test():
     xform2.input_program()
     xform2.output_program()
     
-    print "\nInlining Test3"
+    print("\nInlining Test3")
     xform3 = Transformation(
         name        = 'il',
         in_dim      = in_dim,
@@ -647,7 +647,7 @@ def il_test():
     xform3.input_program()
     xform3.output_program()
     
-    print "Inlining Test4"
+    print("Inlining Test4")
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -671,7 +671,7 @@ def il_test():
     xform4.input_program()
     xform4.output_program()
     
-    print "Inlining Test5"
+    print("Inlining Test5")
     # Dimensions
     in_dim  = 3
     out_dim = 3
@@ -696,7 +696,7 @@ def il_test():
     xform5.output_program()
 
 def sm_test():
-    print "Strip-Mining Test1"
+    print("Strip-Mining Test1")
     # Dimensions
     in_dim  = 2
     out_dim = 3
@@ -724,7 +724,7 @@ def sm_test():
     xform1.output_program()
  
     
-    print "\nStrip-Mining Test2"
+    print("\nStrip-Mining Test2")
     # Dimensions
     in_dim  = 2
     out_dim = 3
@@ -752,7 +752,7 @@ def sm_test():
     xform2.output_program()
 
 def composition_test():
-    print "Composition Test"
+    print("Composition Test")
     # Dimensions
     dim  = 2
     # Type of dimensions
@@ -819,7 +819,7 @@ def composition_test():
     xform = xform1.compose(xform2).compose(xform3).compose(xform4)
 
     xform.input_program()
-    print "\nTransformation: ", xform.name
+    print("\nTransformation: ", xform.name)
     xform.output_program()
 
 if __name__ == "__main__":

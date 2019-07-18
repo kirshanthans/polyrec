@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import sys, os
-from statemachines import MultiTapeFSA, MultiTapeFST
-from transformations import Transformation
-from witnesstuples import WitnessTuple
+from polyrec.statemachines import MultiTapeFSA, MultiTapeFST
+from polyrec.transformations import Transformation
+from polyrec.witnesstuples import WitnessTuple
 
 class Path:
     def __init__(self, fsa):
@@ -26,15 +26,15 @@ class Path:
         self.flat_dict  = {}
         self.pg_ord     = ['e']
        
-        for i in xrange(dims):
+        for i in range(dims):
             self.pg_ord += odrs[i][1:] # creating the flat statement order
             rank = {}
             odr_dim = odrs[i]
-            for j in xrange(len(odr_dim)):
+            for j in range(len(odr_dim)):
                 rank[odr_dim[j]] = j-1
             self.dictionary.append(rank)
         
-        for i in xrange(len(self.pg_ord)):
+        for i in range(len(self.pg_ord)):
             self.flat_dict[self.pg_ord[i]] = i-1
     
     def find_edge_latest(self, curr_state):
@@ -45,7 +45,7 @@ class Path:
         rank       = -1
     
         outgoing = self.fsa.edges[curr_state]
-        for i in xrange(self.fsa.dims):
+        for i in range(self.fsa.dims):
             dict_dim = self.dictionary[i]
             for end, tup in outgoing:
                 rank_ = dict_dim[tup[i]]
@@ -67,7 +67,7 @@ class Path:
 
         self.path = {} # index i holds the part of path from dimension i
         self.mul_path = [] # path as list of tuples
-        for i in xrange(dims):
+        for i in range(dims):
             self.path[i] = []
         self.state_chain = [] # state chain from the initial stage
 
@@ -97,7 +97,7 @@ class Path:
         else:
             self.recur = False
 
-        for i in xrange(len(self.state_chain)): # finding the cycle
+        for i in range(len(self.state_chain)): # finding the cycle
             if self.state_chain[i] == curr_state:
                 self.cycle_path = self.mul_path[i:]
                 break
@@ -109,10 +109,10 @@ class Path:
         next_state = None
         alph       = 'e'
         dim        = -1
-        rank       = sys.maxint
+        rank       = sys.maxsize
     
         outgoing = self.fsa.edges[curr_state]
-        for i in xrange(self.fsa.dims):
+        for i in range(self.fsa.dims):
             dict_dim = self.dictionary[i]
             for end, tup in outgoing:
                 rank_ = dict_dim[tup[i]]
@@ -134,7 +134,7 @@ class Path:
 
         self.path = {} # index i holds the part of path from dimension i
         self.mul_path = [] # path as list of tuples
-        for i in xrange(dims):
+        for i in range(dims):
             self.path[i] = []
         self.state_chain = [] # state chain from the initial stage
 
@@ -146,7 +146,7 @@ class Path:
             # escaping the null transitions
             if len(self.fsa.edges[curr_state]) == 1 and self.fsa.edges[curr_state][0][1] == tuple(['e']*dims):
                 self.state_chain.append(curr_state)
-                curr_state = fsa.edges[curr_state][0][0]
+                curr_state = self.fsa.edges[curr_state][0][0]
 
             alph, dim, next_state = self.find_edge_earliest(curr_state) # finding the earliest edge
 
@@ -163,7 +163,7 @@ class Path:
         else:
             self.recur = False
 
-        for i in xrange(len(self.state_chain)): # finding the cycle
+        for i in range(len(self.state_chain)): # finding the cycle
             if self.state_chain[i] == curr_state:
                 self.cycle_path = self.mul_path[i:]
                 break
@@ -173,7 +173,7 @@ class Path:
     def extend_path(self, times):
         assert self.recur == True
 
-        for i in xrange(times):
+        for _ in range(times):
             self.mul_path += self.cycle_path
             for l,d in self.cycle_path:
                 self.path[d].append(l)
@@ -220,7 +220,7 @@ class Dependence:
     @staticmethod
     def dim_test(late_path, early_path, dict_alph):
         dims = len(dict_alph)
-        for i in xrange(dims):
+        for i in range(dims):
             res = Dependence.ord_test(late_path[i], early_path[i], dict_alph[i])
             if res is None:
                 continue
@@ -243,7 +243,7 @@ class Dependence:
         return Dependence.ord_test(late_path[1:], early_path[1:], dict_alph)
 
 def deptest_cm():   
-    print "Code Motion Test"
+    print("Code Motion Test")
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -273,10 +273,10 @@ def deptest_cm():
 
     Dep = Dependence(wtuple)
 
-    print Dep.test(xform)
+    print(Dep.test(xform))
  
 def deptest_ic():
-    print "Interchange Test"
+    print("Interchange Test")
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -305,10 +305,10 @@ def deptest_ic():
 
     Dep = Dependence(wtuple)
 
-    print Dep.test(xform)
+    print(Dep.test(xform))
 
 def deptest_il():
-    print "Inlining Test"
+    print("Inlining Test")
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -338,10 +338,10 @@ def deptest_il():
 
     Dep = Dependence(wtuple)
 
-    print Dep.test(xform)
+    print(Dep.test(xform))
 
 def deptest_sm():
-    print "Strip-Mining Test"
+    print("Strip-Mining Test")
     # Dimensions
     in_dim  = 2
     out_dim = 3
@@ -374,10 +374,10 @@ def deptest_sm():
 
     Dep = Dependence(wtuple)
 
-    print Dep.test(xform)
+    print(Dep.test(xform))
 
 def deptest_composition():
-    print "Composition Test"
+    print("Composition Test")
     # Dimensions
     dim  = 2
     # Type of dimensions
@@ -452,7 +452,7 @@ def deptest_composition():
 
     Dep = Dependence(wtuple)
 
-    print Dep.test(xform)
+    print(Dep.test(xform))
 
 if __name__ == "__main__":
     deptest_cm()

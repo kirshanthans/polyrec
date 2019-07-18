@@ -31,7 +31,7 @@ class Program(ASTNode):
             mdim[f.tag] = f.getdimtype()
 
         dim_type = []
-        for i in xrange(dim):
+        for i in range(dim):
             dim_type.append(mdim['d'+str(i+1)])
         
         return dim_type
@@ -44,7 +44,7 @@ class Program(ASTNode):
             mf[f.tag] = f.getord()
 
         order = []
-        for i in xrange(dim):
+        for i in range(dim):
             order.append(mf['d'+str(i+1)])
 
         return order
@@ -57,7 +57,7 @@ class Program(ASTNode):
             mf[f.tag] = f.getalp()
 
         alph = []
-        for i in xrange(dim):
+        for i in range(dim):
             alph.append(mf['d'+str(i+1)])
 
         return alph 
@@ -361,11 +361,11 @@ def nest():
 
 def ast_test():
     p = nest()
-    print p.codegen()
-    print p.getdim()
-    print p.getdimtype()
-    print p.getalp()
-    print p.getord()
+    print(p.codegen())
+    print(p.getdim())
+    print(p.getdimtype())
+    print(p.getalp())
+    print(p.getord())
 
 if __name__ == "__main__":
     ast_test()

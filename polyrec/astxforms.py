@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys, os
-from transformations import Transformation
-from ast import *
+from polyrec.transformations import Transformation
+from polyrec.ast import *
 
 def switch_tags(nodes, t1, t2):
     if isinstance(nodes, list):
@@ -109,7 +109,7 @@ class ASTXform:
         assert len(out_ord) == len(self.mprms)
         
         funcs = [] 
-        for ord_d, i in zip(out_ord, xrange(len(out_ord))):
+        for ord_d, i in zip(out_ord, range(len(out_ord))):
             t = 'd' + str(i+1)
             stms = [self.mstmts[t]['g'+str(i+1)]]
             for l in ord_d[1:]:
@@ -132,7 +132,7 @@ class ASTXform:
         in_ord, out_ord = xf.in_ord, xf.out_ord
 
         funcs = [] 
-        for ord_d, i in zip(out_ord, xrange(len(out_ord))):
+        for ord_d, i in zip(out_ord, range(len(out_ord))):
             if i != dim and i != dim+1:
                 t = 'd' + str(i+1)
                 stms = [self.mstmts[t]['g'+str(i+1)]]
@@ -208,7 +208,7 @@ class ASTXform:
         in_ord, out_ord = xf.in_ord, xf.out_ord
 
         funcs = [] 
-        for ord_d, i in zip(out_ord, xrange(len(out_ord))):
+        for ord_d, i in zip(out_ord, range(len(out_ord))):
             t = 'd' + str(i+1)
             guard = self.mstmts[t]['g'+str(i+1)]
             stms = [guard]
@@ -218,7 +218,7 @@ class ASTXform:
                     stms.append(self.mstmts[t][l])
             else:
                 in_ord_d = in_ord[i] # input order of the inlining dimension
-                for l, pos in zip(in_ord_d, xrange(len(in_ord_d))):
+                for l, pos in zip(in_ord_d, range(len(in_ord_d))):
                     if pos == 0: # escaping the empty symbol in the order
                         continue
                     if l != call_label: # copying statements that are non inlined as it is
@@ -271,11 +271,11 @@ class ASTXform:
         return self.ast.codegen()
 
 def cm_test():
-    print "Code Motion Test"
+    print("Code Motion Test")
     p = nest()
     xform = ASTXform(p)
-    print "Input Program"
-    print xform.codegen()
+    print("Input Program")
+    print(xform.codegen())
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -297,15 +297,15 @@ def cm_test():
         out_ord      = out_ord)
     xform.transform(xf)
     
-    print "Output Program"
-    print xform.codegen()
+    print("Output Program")
+    print(xform.codegen())
 
 def ic_test():
-    print "Interchange Test"
+    print("Interchange Test")
     p = nest()
     xform = ASTXform(p)
-    print "Input Program"
-    print xform.codegen()
+    print("Input Program")
+    print(xform.codegen())
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -326,15 +326,15 @@ def ic_test():
         dim_i2       = 1)
     xform.transform(xf)
     
-    print "Output Program"
-    print xform.codegen()
+    print("Output Program")
+    print(xform.codegen())
 
 def il_test():
-    print "Code Motion Test"
+    print("Code Motion Test")
     p = nest()
     xform = ASTXform(p)
-    print "Input Program"
-    print xform.codegen()   
+    print("Input Program")
+    print(xform.codegen())   
     # Dimensions
     in_dim  = 2
     out_dim = 2
@@ -356,15 +356,15 @@ def il_test():
         label       = 'l')
     xform.transform(xf)
     
-    print "Output Program"
-    print xform.codegen()
+    print("Output Program")
+    print(xform.codegen())
 
 def composition_test():
-    print "Composition Test"
+    print("Composition Test")
     p = nest()
     xform = ASTXform(p)
-    print "Input Program"
-    print xform.codegen()
+    print("Input Program")
+    print(xform.codegen())
     # Dimensions
     dim  = 2
     # Type of dimensions
@@ -417,8 +417,8 @@ def composition_test():
         label       = label_il)
     xform.transform(xf3)
     
-    print "Output Program"
-    print xform.codegen()
+    print("Output Program")
+    print(xform.codegen())
 
 if __name__ == "__main__":
     composition_test()

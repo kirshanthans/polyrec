@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys, os
-from transformations import Transformation
-from witnesstuples import WitnessTuple
-from dependencetest import Dependence
-from completion import Completion
-from astxforms import ASTXform
-from ast import *
+from polyrec.transformations import Transformation
+from polyrec.witnesstuples import WitnessTuple
+from polyrec.dependencetest import Dependence
+from polyrec.completion import Completion
+from polyrec.astxforms import ASTXform
+from polyrec.ast import *
 
 def default():
     p = nest()
@@ -15,12 +15,12 @@ def default():
     in_alp   = p.getalp()
     in_ord   = p.getord()
 
-    print "#Dims: ", dim
-    print "Dimension Types:", dim_type
-    print "Input Alphabet:", in_alp
-    print "Input Order:", in_ord
-    print "Source Code"
-    print p.codegen()
+    print("#Dims: ", dim)
+    print("Dimension Types:", dim_type)
+    print("Input Alphabet:", in_alp)
+    print("Input Order:", in_ord)
+    print("Source Code")
+    print(p.codegen())
 
 def trans():
     # Dimensions
@@ -89,7 +89,7 @@ def trans():
     xform = xform1.compose(xform2).compose(xform3).compose(xform4)
 
     xform.input_program()
-    print "\nTransformation: ", xform.name
+    print("\nTransformation: ", xform.name)
     xform.output_program()
 
 def deptest():
@@ -162,23 +162,23 @@ def deptest():
     rgx1 = [['t1'], ['s1']]
     rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
 
-    print "suffix1: ", rgx1
-    print "suffix2: ", rgx2
+    print("suffix1: ", rgx1)
+    print("suffix2: ", rgx2)
     
     wtuple = WitnessTuple(dim, dim_type, alp1, ord1, rgx1, rgx2)
     wtuple.set_fsa()
 
     Dep = Dependence(wtuple)
 
-    print "Input Program"
+    print("Input Program")
     xform.input_program()
-    print "Output Program"
+    print("Output Program")
     xform.output_program()
 
     if Dep.test(xform):
-        print "Dependence is preserved"
+        print("Dependence is preserved")
     else:
-        print "Dependence is broken"
+        print("Dependence is broken")
 
 def complete():
     # dims
@@ -190,16 +190,16 @@ def complete():
     ord1 = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
     # partial order
     partial = [['t', 'r'], ['s', 's', 'r', 'r', 'r']] # potential cm-il
-    print "Partial Order: ", partial
+    print("Partial Order: ", partial)
     # witness tuple
     rgx1 = [['t1'], ['s1']]
     rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
-    print "suffix1: ", rgx1
-    print "suffix2: ", rgx2
+    print("suffix1: ", rgx1)
+    print("suffix2: ", rgx2)
     wtuple = WitnessTuple(dim, dim_type, alp1, ord1, rgx1, rgx2)
     wtuple.set_fsa()
     # completion   
-    print "Completion"
+    print("Completion")
     comp = Completion(dim, dim_type, alp1, ord1, partial, [Dependence(wtuple)])
     comp.checks()
     comp.print_report()
@@ -211,8 +211,8 @@ def complete():
 def code():
     p = nest()
     xform = ASTXform(p)
-    print "Input Program"
-    print xform.codegen()
+    print("Input Program")
+    print(xform.codegen())
     # Dimensions
     dim  = 2
     # Type of dimensions
@@ -265,8 +265,8 @@ def code():
         label       = label_il)
     xform.transform(xf3)
     
-    print "Output Program cm-ic-il"
-    print xform.codegen()
+    print("Output Program cm-ic-il")
+    print(xform.codegen())
 
 def demo(option):
     if option == "transform":
