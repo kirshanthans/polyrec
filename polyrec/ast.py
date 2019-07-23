@@ -1,4 +1,3 @@
-#!/usr/bin/python
 class ASTNode:
     def __init__(self):
         self.tag = None

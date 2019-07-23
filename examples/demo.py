@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import sys, os
 from polyrec.transformations import Transformation
 from polyrec.witnesstuples import WitnessTuple

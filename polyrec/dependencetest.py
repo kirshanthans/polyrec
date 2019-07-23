@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import sys, os
 from polyrec.statemachines import MultiTapeFSA, MultiTapeFST
 from polyrec.transformations import Transformation

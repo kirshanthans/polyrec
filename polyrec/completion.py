@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import itertools
 from polyrec.transformations import Transformation
 from polyrec.dependencetest import Dependence
