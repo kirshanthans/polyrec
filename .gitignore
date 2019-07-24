@@ -1,7 +1,5 @@
 .DS_Store
-.vscode/settings.json
-.vscode/ipch/4445622d61781cd0/kmeans.ipch
-.vscode/ipch/f469eac5c698e8a4/test.ipch
-.vscode/ipch/f469eac5c698e8a4/mmap_address.bin
-.vscode/ipch/4445622d61781cd0/mmap_address.bin
+.vscode
+.pytest_cache
+__pycache__
 *.pyc

@@ -512,7 +512,7 @@ class Transformation:
         out_dim_type.insert(dim_strip, 1)
 
         n_states = (strip_size+1)*(out_dim+1)
-        init = range(0, n_states, out_dim+1) + range(1, n_states, out_dim+1)
+        init = list(range(0, n_states, out_dim+1)) + list(range(1, n_states, out_dim+1))
         init.sort()
         final = range(out_dim, n_states, out_dim+1)
 
