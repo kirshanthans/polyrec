@@ -128,7 +128,7 @@ class ASTXform:
         t1 = 'd' + str(dim+1) 
         t2 = 'd' + str(dim+2)
 
-        in_ord, out_ord = xf.in_ord, xf.out_ord
+        out_ord = xf.out_ord
 
         funcs = [] 
         for ord_d, i in zip(out_ord, range(len(out_ord))):
@@ -200,7 +200,6 @@ class ASTXform:
 
         dim_inline  = xf.dim_inline # dimension to inline
         call_inline = xf.call_inline # call to inline
-        label       = xf.label # label added after inlining
 
         call_label = xf.in_alp[dim_inline][call_inline]
 
@@ -353,6 +352,40 @@ def il_test():
         dim_inline  = 1,
         call_inline = 1,
         label       = 'l')
+    xform.transform(xf)
+    
+    print("Output Program")
+    print(xform.codegen())
+
+def sm_test():
+    print("Strip Mining Test")
+    p = nest()
+    xform = ASTXform(p)    
+    print("Input Program")
+    print(xform.codegen())
+    # Dimensions
+    in_dim  = 2
+    out_dim = 3
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    # strip dimension 
+    strip_dim  = 0
+    # strip size
+    strip_size = 2
+
+    xf = Transformation(
+        name        = 'sm',
+        in_dim      = in_dim, 
+        out_dim     = out_dim, 
+        in_dim_type = in_dim_type, 
+        in_alp      = in_alp, 
+        in_ord      = in_ord, 
+        dim_strip   = strip_dim, 
+        strip_size  = strip_size)
+    
     xform.transform(xf)
     
     print("Output Program")
