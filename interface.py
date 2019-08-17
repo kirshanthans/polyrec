@@ -1082,10 +1082,127 @@ class Interface:
             
         #here we will implement completion
         #FIRST WE NEED THE WITNESS TUPLES
-        print ("---Witness Tuples---\n")
+        print ("---Witness Tuples entry---\n")
+
+        #LEAVE SPOT FOR PREFIX
+        #prefix = 
+
+        print ("---Suffix 1 entry---\n")
+        rgx1 = []
+        spec_options = ['+', '*', 'none']
+        for i in range(in_dim):
+            current = True
+            current_rgx1_list = []
+            while (current):
+                if (i == (in_dim - 1)):
+                    new_item = input("You are in the final list allowed for the first suffix. Please enter a label. If you are finished entering labels, please enter 'done'.\n")
+                    if (new_item == 'done'):
+                        current = False
+                        rgx1.append(current_rgx1_list)
+                        print ("Exiting. Order of list just entered is " + str(current_rgx1_list) + "\n")
+                    elif (new_item not in in_alp[i]):
+                        print ("This is not a valid input. Please enter an item from the input alphabet.\n")
+                    else:
+                        inner_repeat = True
+                        while (inner_repeat):
+                            spec_option = input("If you would like this list label to contain specific labels, please enter '*', '+', or 'none'.\n")
+                            if (spec_option in spec_options):
+                                inner_repeat = False
+                                if (spec_option != 'none'):
+                                    labelled_item = '(' + new_item + ')' + spec_option
+                                    print ("Excellent. Appending item to current list.")
+                                    current_rgx1_list.append(labelled_item)
+                                else:
+                                    print ("Excellent. Appending item to current list.")
+                                    current_rgx1_list.append(new_item)
+                            else:
+                                print ("This is not an example for the label " + str(new_item) + ". Please enter another\n")
+                else:
+                    new_item = input("You are in list " + str(i) + " for the first suffix. Please enter a label. If you are finished entering labels for this list, please enter 'next'.\n")
+                    if (new_item == 'next'):
+                        current = False
+                        rgx1.append(current_rgx1_list)
+                        print ("Moving to next list for suffix1. Order of list just entered is " + str(current_rgx1_list) + "\n")
+                    elif (new_item not in in_alp[i]):
+                        print ("This is not a valid input. Please enter an item from the input alphabet.\n")
+                    else:
+                        inner_repeat = True
+                        while (inner_repeat):
+                            spec_option = input("If you would like this list label to contain specific labels, please enter '*', '+', or 'none'.\n")
+                            if (spec_option in spec_options):
+                                inner_repeat = False
+                                if (spec_option != 'none'):
+                                    labelled_item = '(' + new_item + ')' + spec_option
+                                    print ("Excellent. Appending item to current list.")
+                                    current_rgx1_list.append(labelled_item)
+                                else:
+                                    print ("Excellent. Appending item to current list.")
+                                    current_rgx1_list.append(new_item)
+                            else:
+                                print ("This is not an example for the label " + str(new_item) + ". Please enter another\n")
+
+            
+        print ("The input given for suffix1 is as follows: " + str(rgx1))
+
+        #suffix 2 entry
+        print ("---Suffix 2 entry---\n")
+        rgx2 = []
+        for i in range(in_dim):
+            current = True
+            current_rgx2_list = []
+            while (current):
+                if (i == (in_dim - 1)):
+                    new_item = input("You are in the final list allowed for the second suffix. Please enter a label. If you are finished entering labels, please enter 'done'.\n")
+                    if (new_item == 'done'):
+                        current = False
+                        rgx2.append(current_rgx2_list)
+                        print ("Exiting. Order of list just entered is " + str(current_rgx2_list) + "\n")
+                    elif (new_item not in in_alp[i]):
+                        print ("This is not a valid input. Please enter an item from the input alphabet.\n")
+                    else:
+                        inner_repeat = True
+                        while (inner_repeat):
+                            spec_option = input("If you would like this list label to contain specific labels, please enter '*', '+', or 'none'.\n")
+                            if (spec_option in spec_options):
+                                inner_repeat = False
+                                if (spec_option != 'none'):
+                                    labelled_item = '(' + new_item + ')' + spec_option
+                                    print ("Excellent. Appending item to current list.")
+                                    current_rgx2_list.append(labelled_item)
+                                else:
+                                    print ("Excellent. Appending item to current list.")
+                                    current_rgx2_list.append(new_item)
+                            else:
+                                print ("This is not an example for the label " + str(new_item) + ". Please enter another\n")
+                else:
+                    new_item = input("You are in list " + str(i) + " for the first suffix. Please enter a label. If you are finished entering labels for this list, please enter 'next'.\n")
+                    if (new_item == 'next'):
+                        current = False
+                        rgx2.append(current_rgx2_list)
+                        print ("Moving to next list for suffix2. Order of list just entered is " + str(current_rgx2_list) + "\n")
+                    elif (new_item not in in_alp[i]):
+                        print ("This is not a valid input. Please enter an item from the input alphabet.\n")
+                    else:
+                        inner_repeat = True
+                        while (inner_repeat):
+                            spec_option = input("If you would like this list label to contain specific labels, please enter '*', '+', or 'none'.\n")
+                            if (spec_option in spec_options):
+                                inner_repeat = False
+                                if (spec_option != 'none'):
+                                    labelled_item = '(' + new_item + ')' + spec_option
+                                    print ("Excellent. Appending item to current list.")
+                                    current_rgx2_list.append(labelled_item)
+                                else:
+                                    print ("Excellent. Appending item to current list.")
+                                    current_rgx2_list.append(new_item)
+                            else:
+                                print ("This is not an example for the label " + str(new_item) + ". Please enter another\n")
+
+            
+        print ("The input given for suffix2 is as follows: " + str(rgx2))
         #I NEED HELP HERE WITH THE CREATION OF WITNESS TUPLES
-        rgx1 = [['t1'], ['s1']]
-        rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
+        #rgx1 = [['t1'], ['s1']]
+        #rgx2 = [['r1', '(r1)*', 't1'], ['s1']]
         wtuple = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx1, rgx2)
         wtuple.set_fsa()
 
@@ -1113,18 +1230,33 @@ class Interface:
             current = True
             while (current):
                 xform_choice = input("Please enter the number of the valid xform corresponding to the transformation you would like to do.")
-                if ((xform_choice >= 0) and (xform_choice <= (len(valids) - 1))):
-                    current = False
-                else :
+                try:
+                    xform_choice = int(xform_choice)
+                    if ((xform_choice >= 0) and (xform_choice <= (len(valids) - 1))):
+                        current = False
+                    else:
+                        print ("Invalid choice. Please enter a number between 0 and " + str(len(valids) - 1) + ".\n")
+                except ValueError:
                     print ("Invalid choice. Please enter a number between 0 and " + str(len(valids) - 1) + ".\n")
         else:
             #SHOULD I ALLOW THE USER TO CHOOSE FROM A NON-VALID AKA POTENTIAL OPTION?
+            #the code should eventually tell the user which dependencies were violated
             print("There are no valid options to choose from. Exiting.\n")
             sys.exit()
         
         #HERE WE WILL PERFORM THE OPERATIONS
         #I will need to create xforms. I do not know how many there might be.
         #it is a list of objects
+        
+        for i in range(len(valids[xform_choice])):
+            out_ord = comp.vxforms[i].out_ord
+            comp.in_ord = out_ord
+
+        print ("\nInput order: \n")
+        print (in_ord)
+        print ("\nOutput order: \n")
+        print (out_ord)
+
         
 
     def flow_control(self):
