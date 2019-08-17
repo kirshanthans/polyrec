@@ -1229,7 +1229,7 @@ class Interface:
         if (len(valids) != 0):
             current = True
             while (current):
-                xform_choice = input("Please enter the number of the valid xform corresponding to the transformation you would like to do.")
+                xform_choice = input("\nPlease enter the number of the valid xform corresponding to the transformation you would like to do.\n")
                 try:
                     xform_choice = int(xform_choice)
                     if ((xform_choice >= 0) and (xform_choice <= (len(valids) - 1))):
@@ -1248,14 +1248,17 @@ class Interface:
         #I will need to create xforms. I do not know how many there might be.
         #it is a list of objects
         
+        print ("The series of transformations is as follows:\n")
         for i in range(len(valids[xform_choice])):
-            out_ord = comp.vxforms[i].out_ord
-            comp.in_ord = out_ord
+            print("\nTransformation: ", comp.vxforms[xform_choice][i].name)
+            comp.vxforms[xform_choice][i].output_program()
+            #storing this for future use perhaps?
+            out_ord = comp.vxforms[xform_choice][i].out_ord
 
-        print ("\nInput order: \n")
-        print (in_ord)
-        print ("\nOutput order: \n")
-        print (out_ord)
+        # print ("\nInput order: \n")
+        # print (in_ord)
+        # print ("\nOutput order: \n")
+        # print (out_ord)
 
         
 
