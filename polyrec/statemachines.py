@@ -62,19 +62,19 @@ class MultiTapeFSA:
       
             print("Init States")
             for e in self.init_states:
-                print(e, end='')
+                print(e, end=' ')
             print()
        
             print("Final States ")
             for e in self.final_states:
-                print(e, end='')
+                print(e, end=' ')
             print()
         
             print("Alphabet ")
             for tape, dim in zip(self.alphabet, range(self.dims)):
                 print("Dim ", dim, ": ", end='')
                 for e in tape:
-                    print(e, end='')
+                    print(e, end=' ')
                 print()
             print()
 
@@ -82,7 +82,7 @@ class MultiTapeFSA:
             for tape, dim in zip(self.order, range(self.dims)):
                 print("Dim ", dim, ": ", end='')
                 for e in tape:
-                    print(e, end='')
+                    print(e, end=' ')
                 print()
             print()
             
@@ -218,19 +218,19 @@ class MultiTapeFST:
       
         print("Init States")
         for e in self.init_states:
-            print(e, end='')
+            print(e, end=' ')
         print()
        
         print("Final States ")
         for e in self.final_states:
-            print(e, end='')
+            print(e, end=' ')
         print()
         
         print("Input Alphabet ")
         for tape, dim in zip(self.alphabet_in, range(self.dims_in)):
             print("Dim ", dim, ": ", end='')
             for e in tape:
-                print(e, end='')
+                print(e, end=' ')
             print()
         print()
             
@@ -238,7 +238,7 @@ class MultiTapeFST:
         for tape, dim in zip(self.ord_in, range(self.dims_in)):
             print("Dim ", dim, ": ", end='')
             for e in tape:
-                print(e, end='')
+                print(e, end=' ')
             print()
         print()
         
@@ -246,7 +246,7 @@ class MultiTapeFST:
         for tape, dim in zip(self.alphabet_out, range(self.dims_out)):
             print("Dim ", dim, ": ", end='')
             for e in tape:
-                print(e, end='')
+                print(e, end=' ')
             print()
         print()
         
@@ -254,7 +254,7 @@ class MultiTapeFST:
         for tape, dim in zip(self.ord_out, range(self.dims_out)):
             print("Dim ", dim, ": ", end='')
             for e in tape:
-                print(e, end='')
+                print(e, end=' ')
             print()
         print()
         
