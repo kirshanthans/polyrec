@@ -821,9 +821,48 @@ def composition_test():
     print("\nTransformation: ", xform.name)
     xform.output_program()
 
+def il_succ_test():
+    print("Successive Inlining Test1")
+    # Dimensions
+    in_dim  = 2
+    out_dim = 2
+    # Type of dimensions
+    in_dim_type  = [1, 2]
+    # Input alphabet and order
+    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
+    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+
+    xform1 = Transformation(
+        name        = 'il',
+        in_dim      = in_dim,
+        out_dim     = out_dim,
+        in_dim_type = in_dim_type,
+        in_alp      = in_alp,
+        in_ord      = in_ord,
+        dim_inline  = 1,
+        call_inline = 1,
+        label       = 'l')
+
+    xform2 = Transformation(
+        name        = 'il',
+        in_dim      = in_dim,
+        out_dim     = out_dim,
+        in_dim_type = xform1.out_dim_type,
+        in_alp      = xform1.out_alp,
+        in_ord      = xform1.out_ord,
+        dim_inline  = 1,
+        call_inline = 2,
+        label       = 'x')
+
+    xf = xform1.compose(xform2)
+    xf.input_program()
+    xf.output_program()
+    xf.fst.print_fst()
+
 if __name__ == "__main__":
-    cm_test()
-    ic_test()
-    il_test()
-    sm_test()
-    composition_test()
+    #cm_test()
+    #ic_test()
+    #il_test()
+    #sm_test()
+    #composition_test()
+    il_succ_test()
