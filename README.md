@@ -17,8 +17,8 @@
 
 Code in this repository implements the *PolyRec* framework described in the [paper](10.1145/3314221.3314592) titled **Composable, Sound Transformations of Nested Recursion and Loops**. This implementation encapsulates,
 
-* Represention of dynamic instances in perfectly nested recursion.
-* Represention of basic transformations for perfectly nested recursion.
+* Representation of dynamic instances in perfectly nested recursion.
+* Representation of basic transformations for perfectly nested recursion.
 * Composition of these transformations.
 * Representing dependences.
 * Checking the legality of transformations.
@@ -145,23 +145,23 @@ The ``transform(xf)`` function takes a basic transformation object as input and 
 The ``codegen()`` function returns the source code to current AST held by ASTXform as string.
 
 ### Demo
-* ``./demo``
+* ``python3 -m examples.demo``
 
     Print info about an AST (dimensions, dimension types, order) and generates the code. 
 
-* ``./demo transform``
+* ``python3 -m examples.demo transform``
 
     Takes an input order of labels, performs composition of basic transforms and prints out the output order of labels
 
-* ``./demo deptest``
+* ``python3 -m examples.demo deptest``
     
     Constructs a witness tuple from multi-tape regular expressions, create a Dependence object and check whether this dependence is preserved or not by a transformation. 
 
-* ``./demo complete``
+* ``python3 -m examples.demo complete``
 
     Constructs a completion object with dependence and a partial transformation, prints potential transformations and valid transformations.
 
-* ``./demo codegen``
+* ``python3 -m examples.demo codegen``
 
     Takes an input AST, performs chain of basic AST transformations and generates the code.
 
