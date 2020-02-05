@@ -1,6 +1,6 @@
 import sys, os
 from polyrec.transformations import Transformation
-from polyrec.ast import CallExpr, IfStmt, ReturnStmt, Assignment, BinOp, Array, Field, Number, Const, Var
+from polyrec.ast import nest, Program, Function, CallExpr, IfStmt, ReturnStmt, Assignment, BinOp, UnOp, Array, Field, Number, Const, Var
 
 def switch_tags(nodes, t1, t2):
     if isinstance(nodes, list):
