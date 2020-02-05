@@ -38,7 +38,5 @@ class Transformer(ast.NodeTransformer):
             return result
         return node
 
-
-
 if __name__ == "__main__":
     main()
