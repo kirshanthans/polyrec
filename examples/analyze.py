@@ -1,11 +1,11 @@
-import ast, astunparse
+import ast, astunparse, copy
 from pprint import pprint
 
 def main():
     with open("examples/sources/test.py", "r") as source:
         tree = ast.parse(source.read())
         analyzer = Analyzer()
-        transformer = Transformer()
+        transformer = ChangeCallee("f1", "func1")
         analyzer.visit(transformer.visit(tree))
         analyzer.report()
 
@@ -20,6 +20,33 @@ class Analyzer(ast.NodeVisitor):
     def report(self):
         for f in self.functions:
             print(astunparse.unparse(self.functions[f]))
+
+class ChangeCallee(ast.NodeTransformer):
+
+    def __init__(self, oname:str, nname: str):
+        self.oname = oname
+        self.nname = nname
+
+    def visit_Call(self, node: ast.Call):
+        if node.func.id == self.oname:
+            result = copy.deepcopy(node)
+            result.func.id = self.nname
+            return result
+        return node
+
+class ReplaceVar(ast.NodeTransformer):
+
+    def __init__(self):
+        pass
+
+    def visit_Name(self, node: ast.Name):
+        pass
+
+class NegateCond(ast.NodeTransformer):
+    pass
+
+class AddGuard(ast.NodeTransformer):
+    pass
 
 class Transformer(ast.NodeTransformer):
 
