@@ -99,17 +99,15 @@ class AnalyzeFunction(ast.NodeVisitor):
 class Analyze:
 
     def __init__(self, tree):
-        self.tree = tree # module tree
-        self.dims = 0
-        #self.functions = {} # only to keep the original function trees
-        self.indvars = {}
-        self.representation = {} # map for analyze function order objects
+        self.tree = tree         # module tree
+        self.dims = 0            # dimensions
+        self.indvars = {}        # induction variables
+        self.representation = {} # map: dimension -> function reps
 
     def collect(self):
         collectionWalk = AnalyzeCollection()
         collectionWalk.visit(self.tree)
         self.dims = collectionWalk.dims
-        #self.functions = collectionWalk.functions
         functions = collectionWalk.functions
         
         indvarWalk = AnalyzeInductionVar(range(1, self.dims+1))
@@ -181,7 +179,8 @@ class Analyze:
         
         return fs
             
-
+    def depanalyze(self):
+        pass
 
 if __name__ == "__main__":
     with open("examples/sources/loop-rec.py", "r") as source:
