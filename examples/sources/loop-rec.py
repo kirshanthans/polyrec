@@ -1,7 +1,7 @@
 from struct import Node
 
 def f1(i: int, n: Node) -> None:
-    if i >= 10 or i < 0:
+    if i >= 10:
         return
     f2(i, n)
     f1(i+1, n)

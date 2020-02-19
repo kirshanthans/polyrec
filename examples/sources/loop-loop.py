@@ -21,8 +21,8 @@ def f1_(i: int, j: int) -> None:
     f1_(i+1, j)
 
 def f2_(i: int, j: int) -> None:
-    if j >= i+10:
+    if j-i >= 10:
         return
-    work(i, j)
+    work(i, j-i)
     f2_(i, j+1)
     

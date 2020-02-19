@@ -1,4 +1,4 @@
-import ast, astunparse
+import ast, astunparse, copy
 
 class AnalyzeSelfCall(ast.NodeVisitor):
 
@@ -18,44 +18,54 @@ class AnalyzeInductionVar(ast.NodeVisitor):
 
     def visit_arguments(self, node: ast.arguments):
         assert len(self.tags) == len(node.args)
-        self.indvars = dict(zip(self.tags, node.args))
+        self.indvars = dict(zip(self.tags, copy.deepcopy(node.args)))
 
-class AnalyzeFunctionOrder(ast.NodeVisitor):
+class AnalyzeCollection(ast.NodeVisitor):
+    
+    def __init__(self):
+        self.functions = {}
+        self.dims = 0
+
+    def visit_FunctionDef(self, node: ast.FunctionDef):
+        self.dims += 1
+        self.functions[self.dims] = node
+
+class AnalyzeFunction(ast.NodeVisitor):
 
     def __init__(self, dim: int, fname: str, loop: bool):
         self.dim   = dim
         self.fname = fname
-        self.loop  = loop
+        self.loop  = loop # true or false
         self.alp   = ['e']
         self.ord   = ['e']
-        self.guard = None
-        self.rcall = {}
-        self.tcall = None
-        self.work  = None
+        self.guard = {}   # label: g<dim>
+        self.rcall = {}   # label: r<dim><label>
+        self.tcall = {}   # label: t<dim>
+        self.work  = {}   # label: s1
 
     def visit_If(self, node: ast.If):
         if isinstance(node.body[0], ast.Return):
-            self.guard = node.test
+            self.guard['g'+str(self.dim)] = copy.deepcopy(node.test)
 
     def visit_Call(self, node: ast.Call):
         if node.func.id == self.fname:
             if self.loop:
                 label = "r"+str(self.dim) 
                 self.ord.append(label)
-                self.rcall[label] = node
+                self.rcall[label] = copy.deepcopy(node)
             else:
                 if isinstance(node.args[self.dim-1], ast.Attribute):
                     label = "r"+str(self.dim)+node.args[self.dim-1].attr
                     self.ord.append(label)
-                    self.rcall[label] = node
+                    self.rcall[label] = copy.deepcopy(node)
         else:
             label = "t"+str(self.dim) 
             self.ord.append(label)
-            self.tcall = node
+            self.tcall[label] = copy.deepcopy(node)
 
     def visit_Assign(self, node: ast.Assign):
-        self.ord.append("s1")
-        self.work = node
+        self.ord.append('s1')
+        self.work['s1'] = copy.deepcopy(node)
 
     def set_alp(self):
         rec = []
@@ -69,47 +79,55 @@ class AnalyzeFunctionOrder(ast.NodeVisitor):
 
         self.alp = self.alp + rec + trs
 
-class AnalyzeCollection(ast.NodeVisitor):
-    
-    def __init__(self):
-        self.functions = {}
-        self.dims = 0
+    def codegen(self):
+        ret_node = ast.FunctionDef(name=self.fname, args=[], 
+                                   decorator_list=[], returns=ast.NameConstant(None))
+        body_node = [ast.If(test=copy.deepcopy(self.guard['g'+str(self.dim)]), 
+                           body=[ast.Return(None)], orelse=[])]
 
-    def visit_FunctionDef(self, node: ast.FunctionDef):
-        self.dims += 1
-        self.functions[self.dims] = node
+        for label in self.ord[1:]:
+            if label[0] == "t":
+                body_node.append(ast.Expr(copy.deepcopy(self.tcall[label])))
+            elif label[0] == "r":
+                body_node.append(ast.Expr(copy.deepcopy(self.rcall[label])))
+            else:
+                body_node.append(copy.deepcopy(self.work[label]))
+
+        ret_node.body = body_node
+        return ret_node
 
 class Analyze:
 
     def __init__(self, tree):
-        self.tree = tree
+        self.tree = tree # module tree
         self.dims = 0
-        self.functions = {}
+        #self.functions = {} # only to keep the original function trees
         self.indvars = {}
-        self.representation = {}
+        self.representation = {} # map for analyze function order objects
 
     def collect(self):
         collectionWalk = AnalyzeCollection()
         collectionWalk.visit(self.tree)
         self.dims = collectionWalk.dims
-        self.functions = collectionWalk.functions
-        
-        for i in range(1, self.dims+1):
-            self.func(i, self.functions[i])
+        #self.functions = collectionWalk.functions
+        functions = collectionWalk.functions
         
         indvarWalk = AnalyzeInductionVar(range(1, self.dims+1))
-        indvarWalk.visit(self.functions[1])
+        indvarWalk.visit(functions[1])
         self.indvars = indvarWalk.indvars
+        
+        for i in range(1, self.dims+1):
+            self.func(i, functions[i])
 
     def func(self, dim: int, node: ast.FunctionDef):
         rcallWalk = AnalyzeSelfCall(node.name)
         rcallWalk.visit(node)
-        
         loop = (rcallWalk.rcall == 1)
-        funcOrdWalk = AnalyzeFunctionOrder(dim, node.name, loop)
-        funcOrdWalk.visit(node)
-        funcOrdWalk.set_alp()
-        self.representation[dim] = funcOrdWalk
+
+        funcWalk = AnalyzeFunction(dim, node.name, loop)
+        funcWalk.visit(node)
+        funcWalk.set_alp()
+        self.representation[dim] = funcWalk
 
     def getdim(self):
         return self.dims
@@ -150,11 +168,24 @@ class Analyze:
 
         return indvar
 
+    def codegen(self):
+        dims = self.dims
+        args = list(self.indvars.values())
+        fs = []
+        for t in range(1, dims+1):
+            fnode = self.representation[t].codegen()
+            fnode.args = ast.arguments(args=args, vararg=None, 
+                                       kwonlyargs=[], kw_defaults=[], 
+                                       kwarg=None, defaults=[])
+            fs.append(fnode)
+        
+        return fs
+            
+
+
 if __name__ == "__main__":
     with open("examples/sources/loop-rec.py", "r") as source:
         tree = ast.parse(source.read())
-        #print(ast.dump(tree))
-        print(astunparse.unparse(tree))
         analyze = Analyze(tree)
         analyze.collect()
         print(analyze.getdim())
@@ -162,3 +193,5 @@ if __name__ == "__main__":
         print(analyze.getalp())
         print(analyze.getord())
         print(analyze.getindvar())
+        for f in analyze.codegen():
+            print(astunparse.unparse(f))
