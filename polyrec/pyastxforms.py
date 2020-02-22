@@ -4,7 +4,7 @@ from polyrec.pyast import Analyze
 import ast, astunparse
 
 class ReplaceVar(ast.NodeTransformer):
-    def __init__(self, oname, nname):
+    def __init__(self, oname: str, nname: str):
         self.oname = oname
         self.nname = nname
 
