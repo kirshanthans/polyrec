@@ -1,78 +1,11 @@
 import sys, os, copy
 from polyrec.transformations import Transformation
 from polyrec.pyast import Analyze
+from polyrec.util import cleanup, shift 
+from polyrec.util import InterchangeArg, ChangeCallee
+from polyrec.util import CallAddArg, ChangeStride, ReplaceVar
 import ast, astunparse
 
-class ReplaceVar(ast.NodeTransformer):
-    def __init__(self, oname: str, nname: str):
-        self.oname = oname
-        self.nname = nname
-
-    def visit_Name(self, node: ast.Name):
-        if node.id == self.oname:
-            result = copy.deepcopy(node)
-            result.id = self.nname
-            return result
-        return node
-
-class ChangeStride(ast.NodeTransformer):
-    def __init__(self, stride: int):
-        self.stride = stride
-
-    def visit_BinOp(self, node: ast.BinOp):
-        result = copy.deepcopy(node)
-        if isinstance(node.right, ast.Num):
-            result.right.n = self.stride
-        return result
-
-class CallAddArg(ast.NodeTransformer):
-    def __init__(self, id, dim):
-        self.dim = dim
-        self.newarg = ast.Name(id=id, ctx=ast.Load())
-    
-    def visit_Call(self, node: ast.Call):
-        result = copy.deepcopy(node)
-        result.args.insert(self.dim, self.newarg)
-        return result
-
-class ChangeCallee(ast.NodeTransformer):
-
-    def __init__(self, oname:str, nname: str):
-        self.oname = oname
-        self.nname = nname
-
-    def visit_Call(self, node: ast.Call):
-        if node.func.id == self.oname:
-            result = copy.deepcopy(node)
-            result.func.id = self.nname
-            return result
-        return node
-
-class InterchangeArg(ast.NodeTransformer):
-
-    def __init__(self, pos1: int, pos2: int):
-        self.pos1 = pos1
-        self.pos2 = pos2
-
-    def visit_Call(self, node: ast.Call):
-        result = copy.deepcopy(node)
-        result.args[self.pos1], result.args[self.pos2] = result.args[self.pos2], result.args[self.pos1] 
-        return result
-
-def cleanup(d, new_dim):
-    ret = {}
-    for k in d:
-        ret[k[0]+str(new_dim)+k[2:]] = d[k]
-    return ret
-
-def shift(d, dim):
-    ret = {}
-    for k in d:
-        if k <= dim:
-            ret[k] = d[k]
-        else:
-            ret[k+1] = d[k]
-    return ret
 
 class Transform:
     def __init__(self, analyze):
@@ -350,9 +283,9 @@ class Transform:
             s += astunparse.unparse(f)
         return s
 
-def cm_test():
+def cm_test(filename):
     print("Code Motion Test")
-    with open("examples/sources/loop-rec.py", "r") as source:
+    with open(filename, "r") as source:
         tree = ast.parse(source.read())
         analyze = Analyze(tree)
         xform = Transform(analyze)
@@ -383,9 +316,9 @@ def cm_test():
         print("\nOutput Program")
         print(xform.codegen())
 
-def ic_test():
+def ic_test(filename):
     print("Interchange Test")
-    with open("examples/sources/loop-rec.py", "r") as source:
+    with open(filename, "r") as source:
         tree = ast.parse(source.read())
         analyze = Analyze(tree)
         xform = Transform(analyze)
@@ -415,9 +348,42 @@ def ic_test():
         print("\nOutput Program")
         print(xform.codegen())
 
-def sm_test():
+def il_test(filename):
+    print("Inlining Test")
+    with open(filename, "r") as source:
+        tree = ast.parse(source.read())
+        analyze = Analyze(tree)
+        xform = Transform(analyze)
+        # Input program
+        print("\nInput Program")
+        print(xform.codegen())
+        # Dimensions
+        in_dim  = xform.analyze.dims
+        out_dim = in_dim
+        # Type of dimensions
+        in_dim_type = xform.analyze.getdimtype()
+        # Input alphabet and order
+        in_alp = xform.analyze.getalp()
+        in_ord = xform.analyze.getord()
+        # Transform
+        xf = Transformation(
+            name        = 'il',
+            in_dim      = in_dim,
+            out_dim     = out_dim,
+            in_dim_type = in_dim_type,
+            in_alp      = in_alp,
+            in_ord      = in_ord,
+            dim_inline  = 1,
+            call_inline = 1,
+            label       = 'l')
+        xform.transform(xf)
+        # Output program
+        print("\nOutput Program")
+        print(xform.codegen())
+
+def sm_test(filename):
     print("Strip Mining Test")
-    with open("examples/sources/loop-rec.py", "r") as source:
+    with open(filename, "r") as source:
         tree = ast.parse(source.read())
         analyze = Analyze(tree)
         xform = Transform(analyze)
@@ -451,8 +417,9 @@ def sm_test():
         print("\nOutput Program")
         print(xform.codegen())
 
-def composition_test():
-   with open("examples/sources/loop-rec.py", "r") as source:
+def composition_test(filename):
+    print("Composition Test")
+    with open(filename, "r") as source:
         tree = ast.parse(source.read())
         analyze = Analyze(tree)
         xform = Transform(analyze)
@@ -502,7 +469,8 @@ def composition_test():
         print(xform.codegen())
 
 if __name__ == "__main__":
-    cm_test()
-    ic_test()
-    sm_test()
-    composition_test()
+    #cm_test("examples/sources/loop-rec.py")
+    #ic_test("examples/sources/loop-rec.py")
+    il_test("examples/sources/loop-rec.py")
+    #sm_test("examples/sources/loop-rec.py")
+    #composition_test("examples/sources/loop-rec.py")
