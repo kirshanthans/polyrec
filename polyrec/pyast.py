@@ -1,4 +1,46 @@
 import ast, astunparse, copy
+from polyrec.witnesstuples import WitnessTuple
+
+class AnalyzeTreeReads(ast.NodeVisitor):
+    def __init__(self):
+        self.treereads = set([])
+    def visit_Attribute(self, node: ast.Attribute):
+        if node.attr == 'l' or node.attr == 'r':
+            self.treereads.add(node.attr)
+        self.generic_visit(node)
+
+class AnalyzeArrayReads(ast.NodeVisitor):
+    def __init__(self):
+        self.arrayreads = set([])
+    
+    def visit_Subscript(self, node: ast.Subscript):
+        if isinstance(node.slice, ast.Index):
+            if isinstance(node.slice.value, ast.BinOp):
+                if isinstance(node.slice.value.op, ast.Add):
+                    self.arrayreads.add(node.slice.value.right.n)
+                elif isinstance(node.slice.value.op, ast.Sub):
+                    self.arrayreads.add(-node.slice.value.right.n)
+
+class AnalyzeTreeWrites(ast.NodeVisitor):
+    def __init__(self):
+        self.treewrites = set([])
+
+    def visit_Attribute(self, node: ast.Attribute):
+        if node.attr == 'l' or node.attr == 'r':
+            self.treewrites.add(node.attr)
+        self.generic_visit(node)
+
+class AnalyzeArrayWrites(ast.NodeVisitor):
+    def __init__(self):
+        self.arraywrites = set([])
+
+    def visit_Subscript(self, node: ast.Subscript):
+        if isinstance(node.slice, ast.Index):
+            if isinstance(node.slice.value, ast.BinOp):
+                if isinstance(node.slice.value.op, ast.Add):
+                    self.arraywrites.add(node.slice.value.right.n)
+                elif isinstance(node.slice.value.op, ast.Sub):
+                    self.arraywrites.add(-node.slice.value.right.n)
 
 class AnalyzeSelfCall(ast.NodeVisitor):
 
@@ -168,7 +210,9 @@ class Analyze:
 
     def codegen(self):
         dims = self.dims
-        args = list(self.indvars.values())
+        args = []
+        for d in range(1, self.dims+1):
+            args.append(self.indvars[d])
         fs = []
         for t in range(1, dims+1):
             fnode = self.representation[t].codegen()
@@ -180,7 +224,25 @@ class Analyze:
         return fs
             
     def depanalyze(self):
-        pass
+        dims = self.dims
+        stmt = self.representation[dims].work['s1']
+        print(ast.dump(stmt))
+        # Reads
+        treads   = AnalyzeTreeReads()
+        areads  = AnalyzeArrayReads()
+        treads.visit(stmt.value)
+        areads.visit(stmt.value)
+        # Writes
+        twrites  = AnalyzeTreeWrites()
+        awrites = AnalyzeArrayWrites()
+        for t in stmt.targets:
+            twrites.visit(t)
+            awrites.visit(t)
+
+        print("read array: ", areads.arrayreads)
+        print("read tree: ", treads.treereads)
+        print("write array: ", awrites.arraywrites)
+        print("write tree: ", twrites.treewrites)
 
 if __name__ == "__main__":
     with open("examples/sources/loop-rec.py", "r") as source:
@@ -192,5 +254,6 @@ if __name__ == "__main__":
         print(analyze.getalp())
         print(analyze.getord())
         print(analyze.getindvar())
-        for f in analyze.codegen():
-            print(astunparse.unparse(f))
+        #for f in analyze.codegen():
+        #    print(astunparse.unparse(f))
+        analyze.depanalyze()
