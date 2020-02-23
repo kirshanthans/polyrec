@@ -18,5 +18,4 @@ void f2(int i, Node * n){
     f2(i, n->l);
     f2(i, n->r);
     n->x[i] = n->x[i+1] + 1;
-    //n->x[i] = n->l->x[i] + 1; 
 }
