@@ -280,6 +280,9 @@ class Transform:
     def codegen(self):
         return self.analyze.codegen()
 
+    def cgen(self):
+        return self.analyze.cgen()
+
 def cm_test(filename):
     print("Code Motion Test")
     with open(filename, "r") as source:

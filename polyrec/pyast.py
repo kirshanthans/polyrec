@@ -314,8 +314,22 @@ class Analyze:
                 
                 for _ in range(x):
                    rgx2[0].insert(0, 'r1') 
-                
-                self.deps.add(WitnessTuple(self.getdim(), self.getdimtype(), self.getalp(), self.getord(), rgx1, rgx2))
+                wt = WitnessTuple(self.getdim(), self.getdimtype(), self.getalp(), self.getord(), rgx1, rgx2)
+                wt.set_fsa()
+                self.deps.add(wt)
+
+        for l in treads.treereads:
+            rgx1 = [['t1'],['s1']]
+            rgx2 = [['t1'],['s1']]
+            for r in self.representation[2].rcall:
+                if r[2:] == l:
+                    if self.representation[2].ord.index(r) < self.representation[2].ord.index('s1'):
+                        rgx1[1].insert(0, r)
+                    else:
+                        rgx2[1].insert(0, r)
+                    wt = WitnessTuple(self.getdim(), self.getdimtype(), self.getalp(), self.getord(), rgx1, rgx2)
+                    wt.set_fsa()
+                    self.deps.add(wt)
 
     def getdeps(self):
         ret = []
