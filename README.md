@@ -128,17 +128,16 @@ For instance [['r', 't'],['r', 'r', 's']] is a partial order.
 ### Code Generation
 *Importing Modules*
 ```python
-from polyrec.astxform import ASTXform
-from polyrec.ast import *
+from polyrec.pyastxform import Transform
 ```
 An AST transformation object is constructed as shown below.
 ```python
 p = ...             # tagged recursion nest ast
-xform = ASTXform(p) # creating an ast transform object
+xform = Transform(p) # creating an ast transform object
 
-print xform.codegen() # input recursion nest code
-xform.transform(xf)   # applying the ast transformation
-print xform.codegen() # code for recusion nest after the transform
+print(xform.codegen()) # input recursion nest code
+xform.transform(xf)    # applying the ast transformation
+print(xform.codegen()) # code for recusion nest after the transform
 ```
 The ``transform(xf)`` function takes a basic transformation object as input and performs the necessary AST modifications to realize the transformation.
 
