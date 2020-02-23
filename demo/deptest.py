@@ -7,148 +7,150 @@ from polyrec.ctopy import CtoPy
 from polyrec.witnesstuples import WitnessTuple
 from polyrec.dependencetest import Dependence
 
-def deptest_cm():   
+def deptest_cm(filename):   
     print("Code Motion Test")
-    # Dimensions
-    in_dim  = 2
-    out_dim = 2
-    # Type of dimensions
-    in_dim_type  = [1, 2]
-    # Input alphabet and order
-    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
-    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
-    # Output order
-    out_ord = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+    with open(filename, "r") as source:
+        # reading the c file
+        parser = c_parser.CParser()
+        astc = parser.parse(source.read())
+        # convert to python
+        pysrc = CtoPy(astc)
+        tree = ast.parse(pysrc.getPy())
+        analyze = Analyze(tree)
+        xform = Transform(analyze)
+        # Input program
+        print("\nInput Program")
+        print(xform.codegen())
+        # Dimensions
+        in_dim  = xform.analyze.dims
+        out_dim = in_dim
+        # Type of dimensions
+        in_dim_type = xform.analyze.getdimtype()
+        # Input alphabet and order
+        in_alp = xform.analyze.getalp()
+        in_ord = xform.analyze.getord()
+        # Output order
+        out_ord = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
 
-    xform = Transformation(
-        name         ='cm',
-        in_dim       = in_dim,
-        out_dim      = out_dim,
-        in_dim_type  = in_dim_type,
-        in_alp       = in_alp,
-        in_ord       = in_ord,
-        out_ord      = out_ord)
+        xf = Transformation(
+            name         ='cm',
+            in_dim       = in_dim,
+            out_dim      = out_dim,
+            in_dim_type  = in_dim_type,
+            in_alp       = in_alp,
+            in_ord       = in_ord,
+            out_ord      = out_ord)
 
-    # regex for witness tuple    
-    rgx1 = [['t1'], ['s1']]
-    rgx2 = [['r1', 't1'], ['(r2l|r2r)', 's1']]
+        xform.analyze.depanalyze()
+        print(xform.analyze.getdeps())
+        for i, wt in enumerate(xform.analyze.deps):
+            Dep = Dependence(wt)
+            print("Witness Tuple", i, ": ", Dep.test(xf))
     
-    wtuple1 = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx1, rgx2)
-    wtuple1.set_fsa()
-
-    Dep1 = Dependence(wtuple1)
-
-    print("Tuple1: ", Dep1.test(xform))
-    
-    rgx3 = [['t1'], ['(r2l|r2r)', 's1']]
-    rgx4 = [['t1'], ['s1']]
-    
-    wtuple2 = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx3, rgx4)
-    wtuple2.set_fsa()
-
-    Dep2 = Dependence(wtuple2)
-
-    print("Tuple2: ", Dep2.test(xform))
- 
-def deptest_ic():
+def deptest_ic(filename):
     print("Interchange Test")
-    # Dimensions
-    in_dim  = 2
-    out_dim = 2
-    # Type of dimensions
-    in_dim_type  = [1, 2]
-    # Input alphabet and order
-    in_alp  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
-    in_ord  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
+    with open(filename, "r") as source:
+        # reading the c file
+        parser = c_parser.CParser()
+        astc = parser.parse(source.read())
+        # convert to python
+        pysrc = CtoPy(astc)
+        tree = ast.parse(pysrc.getPy())
+        analyze = Analyze(tree)
+        xform = Transform(analyze)
+        # Input program
+        print("\nInput Program")
+        print(xform.codegen())
+        # Dimensions
+        in_dim  = xform.analyze.dims
+        out_dim = in_dim
+        # Type of dimensions
+        in_dim_type = xform.analyze.getdimtype()
+        # Input alphabet and order
+        in_alp = xform.analyze.getalp()
+        in_ord = xform.analyze.getord()
 
-    xform = Transformation(
-        name         ='ic',
-        in_dim       = in_dim,
-        out_dim      = out_dim,
-        in_dim_type  = in_dim_type,
-        in_alp       = in_alp,
-        in_ord       = in_ord,
-        dim_i1       = 0,
-        dim_i2       = 1)
+        xf = Transformation(
+            name         ='ic',
+            in_dim       = in_dim,
+            out_dim      = out_dim,
+            in_dim_type  = in_dim_type,
+            in_alp       = in_alp,
+            in_ord       = in_ord,
+            dim_i1       = 0,
+            dim_i2       = 1)
     
-    # regex for witness tuple    
-    rgx1 = [['t1'], ['s1']]
-    rgx2 = [['r1', 't1'], ['(r2l|r2r)', 's1']]
-    
-    wtuple1 = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx1, rgx2)
-    wtuple1.set_fsa()
+        xform.analyze.depanalyze()
+        print(xform.analyze.getdeps())
+        for i, wt in enumerate(xform.analyze.deps):
+            Dep = Dependence(wt)
+            print("Witness Tuple", i, ": ", Dep.test(xf))
 
-    Dep1 = Dependence(wtuple1)
-
-    print("Tuple1: ", Dep1.test(xform))
-    
-    rgx3 = [['t1'], ['(r2l|r2r)', 's1']]
-    rgx4 = [['t1'], ['s1']]
-    
-    wtuple2 = WitnessTuple(in_dim, in_dim_type, in_alp, in_ord, rgx3, rgx4)
-    wtuple2.set_fsa()
-
-    Dep2 = Dependence(wtuple2)
-
-    print("Tuple2: ", Dep2.test(xform))
-
-def deptest_cm_ic():
+def deptest_cm_ic(filename):
     print("CM-IC Test")
-    # Dimensions
-    dim  = 2
-    # Type of dimensions
-    dim_type = [1, 2]
+    with open(filename, "r") as source:
+        # reading the c file
+        parser = c_parser.CParser()
+        astc = parser.parse(source.read())
+        # convert to python
+        pysrc = CtoPy(astc)
+        tree = ast.parse(pysrc.getPy())
+        analyze = Analyze(tree)
+        xform = Transform(analyze)
+        # Input program
+        print("\nInput Program")
+        print(xform.codegen())
+        # Dimensions
+        in_dim  = xform.analyze.dims
+        out_dim = in_dim
+        # Type of dimensions
+        in_dim_type = xform.analyze.getdimtype()
+        # Input alphabet and order
+        in_alp = xform.analyze.getalp()
+        in_ord = xform.analyze.getord()
+        # Output order
+        out_ord = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+        
+        xf1 = Transformation(
+            name         = 'cm',
+            in_dim       = in_dim,
+            out_dim      = out_dim,
+            in_dim_type  = in_dim_type,
+            in_alp       = in_alp,
+            in_ord       = in_ord,
+            out_ord      = out_ord)
 
-    # code-motion 
-    alp1  = [['e', 'r1', 't1'], ['e', 'r2l', 'r2r', 's1']]
-    ord1  = [['e', 't1', 'r1'], ['e', 'r2l', 'r2r', 's1']]
-    ord2  = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+        # interchange
+        dim1_ = 0
+        dim2_ = 1
 
-    xform1 = Transformation(
-        name         = 'cm',
-        in_dim       = dim,
-        out_dim      = dim,
-        in_dim_type  = dim_type,
-        in_alp       = alp1,
-        in_ord       = ord1,
-        out_ord      = ord2)
-    
-    # interchange
-    dim1_ = 0
-    dim2_ = 1
-    
-    xform2 = Transformation(
-        name         ='ic',
-        in_dim       = xform1.out_dim,
-        out_dim      = xform1.out_dim,
-        in_dim_type  = xform1.out_dim_type,
-        in_alp       = xform1.out_alp,
-        in_ord       = xform1.out_ord,
-        dim_i1       = dim1_,
-        dim_i2       = dim2_)
-    
-    xform = xform1.compose(xform2)
-    
-    # regex for witness tuple    
-    rgx1 = [['t1'], ['s1']]
-    rgx2 = [['r1', 't1'], ['(r2l|r2r)', 's1']]
-    
-    wtuple1 = WitnessTuple(dim, dim_type, alp1, ord1, rgx1, rgx2)
-    wtuple1.set_fsa()
+        xf2 = Transformation(
+            name         ='ic',
+            in_dim       = xf1.out_dim,
+            out_dim      = xf1.out_dim,
+            in_dim_type  = xf1.out_dim_type,
+            in_alp       = xf1.out_alp,
+            in_ord       = xf1.out_ord,
+            dim_i1       = dim1_,
+            dim_i2       = dim2_)
 
-    Dep1 = Dependence(wtuple1)
+        xf = xf1.compose(xf2)
 
-    print("Tuple1: ", Dep1.test(xform))
-    
-    rgx3 = [['t1'], ['(r2l|r2r)', 's1']]
-    rgx4 = [['t1'], ['s1']]
-    
-    wtuple2 = WitnessTuple(dim, dim_type, alp1, ord1, rgx3, rgx4)
-    wtuple2.set_fsa()
-
-    Dep2 = Dependence(wtuple2)
-
-    print("Tuple2: ", Dep2.test(xform))
+        xform.analyze.depanalyze()
+        
+        print(xform.analyze.deps)
+        for i, wt in enumerate(xform.analyze.deps):
+            Dep = Dependence(wt)
+            print("Witness Tuple", i, ": ", Dep.test(xf))
 
 if __name__ == "__main__":
-    deptest_cm()
+    if len(sys.argv) != 2:
+        print("provide proper argument")
+        exit()
+    test = sys.argv[1]
+    if test == "cm":
+        deptest_cm("examples/sources/loop-rec.c")
+    elif test == "ic":
+        deptest_ic("examples/sources/loop-rec.c")
+    elif test == "cm-ic":
+        deptest_cm_ic("examples/sources/loop-rec.c")

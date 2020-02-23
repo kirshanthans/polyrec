@@ -145,23 +145,23 @@ The ``transform(xf)`` function takes a basic transformation object as input and 
 The ``codegen()`` function returns the source code to current AST held by ASTXform as string.
 
 ### Demo
-* ``python3 -m examples.demo``
+
+## Building the Docker Image
+* ``docker build -t polyrec .``
+
+## Running Demo
+* ``docker run -t polyrec python3 -m demo.representation``
 
     Print info about an AST (dimensions, dimension types, order) and generates the code. 
 
-* ``python3 -m examples.demo transform``
+* ``docker run -t polyrec python3 -m demo.transforms <arg>``
 
     Takes an input order of labels, performs composition of basic transforms and prints out the output order of labels
 
-* ``python3 -m examples.demo deptest``
+* ``docker run -t polyrec python3 -m demo.deptest <arg>``
     
     Constructs a witness tuple from multi-tape regular expressions, create a Dependence object and check whether this dependence is preserved or not by a transformation. 
 
-* ``python3 -m examples.demo complete``
+* ``docker run -t polyrec python3 -m demo.complete``
 
     Constructs a completion object with dependence and a partial transformation, prints potential transformations and valid transformations.
-
-* ``python3 -m examples.demo codegen``
-
-    Takes an input AST, performs chain of basic AST transformations and generates the code.
-
