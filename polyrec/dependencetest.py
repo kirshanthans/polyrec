@@ -521,8 +521,8 @@ def deptest_cm_ic():
 
     print("Tuple1: ", Dep1.test(xform))
     
-    rgx3 = [['t1'], ['s1']]
-    rgx4 = [['t1'], ['(r2l|r2r)', 's1']]
+    rgx3 = [['t1'], ['(r2l|r2r)', 's1']]
+    rgx4 = [['t1'], ['s1']]
     
     wtuple2 = WitnessTuple(dim, dim_type, alp1, ord1, rgx3, rgx4)
     wtuple2.set_fsa()

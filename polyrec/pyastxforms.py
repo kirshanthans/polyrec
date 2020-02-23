@@ -278,10 +278,7 @@ class Transform:
         rep.tcall = new_tcall
 
     def codegen(self):
-        s = ""
-        for f in self.analyze.codegen():
-            s += astunparse.unparse(f)
-        return s
+        return self.analyze.codegen()
 
 def cm_test(filename):
     print("Code Motion Test")

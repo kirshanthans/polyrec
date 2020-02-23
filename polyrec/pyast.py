@@ -20,6 +20,8 @@ class AnalyzeArrayReads(ast.NodeVisitor):
                     self.arrayreads.add(node.slice.value.right.n)
                 elif isinstance(node.slice.value.op, ast.Sub):
                     self.arrayreads.add(-node.slice.value.right.n)
+            if isinstance(node.slice.value, ast.Name):
+                self.arrayreads.add(0)
 
 class AnalyzeTreeWrites(ast.NodeVisitor):
     def __init__(self):
@@ -41,6 +43,8 @@ class AnalyzeArrayWrites(ast.NodeVisitor):
                     self.arraywrites.add(node.slice.value.right.n)
                 elif isinstance(node.slice.value.op, ast.Sub):
                     self.arraywrites.add(-node.slice.value.right.n)
+            if isinstance(node.slice.value, ast.Name):
+                self.arraywrites.add(0)
 
 class AnalyzeSelfCall(ast.NodeVisitor):
 
@@ -121,7 +125,7 @@ class AnalyzeFunction(ast.NodeVisitor):
 
         self.alp = self.alp + rec + trs
 
-    def codegen(self):
+    def constructf(self):
         ret_node = ast.FunctionDef(name=self.fname, args=[], 
                                    decorator_list=[], returns=ast.NameConstant(None))
         body_node = [ast.If(test=copy.deepcopy(self.guard['g'+str(self.dim)]), 
@@ -138,6 +142,28 @@ class AnalyzeFunction(ast.NodeVisitor):
         ret_node.body = body_node
         return ret_node
 
+    def cgen(self):
+        body = []
+        bound = astunparse.unparse(self.guard['g'+str(self.dim)]).strip().replace('or', '||').rstrip()
+        termination = "if " + bound + "{\nreturn;\n}"
+        body.append(termination)
+
+        for label in self.ord[1:]:
+            if label[0] == "t":
+                s = astunparse.unparse(ast.Expr(self.tcall[label])).rstrip()
+                s += ';'
+                body.append(s)
+            elif label[0] == "r":
+                s = astunparse.unparse(ast.Expr(self.rcall[label])).rstrip()
+                s += ';'
+                body.append(s)
+            else:
+                s = astunparse.unparse(ast.Expr(self.work[label])).replace('.', '->').rstrip()
+                s += ';'
+                body.append(s)
+        
+        return body
+
 class Analyze:
 
     def __init__(self, tree):
@@ -145,6 +171,7 @@ class Analyze:
         self.dims = 0            # dimensions
         self.indvars = {}        # induction variables
         self.representation = {} # map: dimension -> function reps
+        self.deps = set([])
 
     def collect(self):
         collectionWalk = AnalyzeCollection()
@@ -208,14 +235,14 @@ class Analyze:
 
         return indvar
 
-    def codegen(self):
+    def constructfs(self):
         dims = self.dims
         args = []
         for d in range(1, self.dims+1):
             args.append(self.indvars[d])
         fs = []
         for t in range(1, dims+1):
-            fnode = self.representation[t].codegen()
+            fnode = self.representation[t].constructf()
             fnode.args = ast.arguments(args=args, vararg=None, 
                                        kwonlyargs=[], kw_defaults=[], 
                                        kwarg=None, defaults=[])
@@ -223,13 +250,46 @@ class Analyze:
         
         return fs
             
+    def codegen(self):
+        s = ""
+        for f in self.constructfs():
+            s += astunparse.unparse(f)
+        return s
+
+    def cgen(self):
+        dims = self.dims
+        
+        args = self.getindvar()
+        s_arg = []
+        for d, arg in enumerate(args):
+            if self.representation[d+1].loop:
+                s_arg.append("int " + arg)
+            else:
+                s_arg.append("Node * " + arg)
+
+        ss_arg = s_arg[0] 
+        for s in s_arg[1:]:
+            ss_arg += ", " + s  
+
+        s = ''
+        for d in range(1, dims+1):
+            sfunc = "void " + self.representation[d].fname + "(" + ss_arg + "){\n"
+            
+            stmts = self.representation[d].cgen()
+            for st in stmts:
+                sfunc += "" + st + "\n"
+            sfunc += "}\n\n"
+            s += sfunc
+
+        return s
+    
     def depanalyze(self):
         dims = self.dims
         stmt = self.representation[dims].work['s1']
-        print(ast.dump(stmt))
+        # print(ast.dump(stmt))
         # Reads
-        treads   = AnalyzeTreeReads()
-        areads  = AnalyzeArrayReads()
+        treads = AnalyzeTreeReads()
+        areads = AnalyzeArrayReads()
         treads.visit(stmt.value)
         areads.visit(stmt.value)
         # Writes
@@ -239,10 +299,29 @@ class Analyze:
             twrites.visit(t)
             awrites.visit(t)
 
-        print("read array: ", areads.arrayreads)
-        print("read tree: ", treads.treereads)
-        print("write array: ", awrites.arraywrites)
-        print("write tree: ", twrites.treewrites)
+        #print("read array: ", areads.arrayreads)
+        #print("read tree: ", treads.treereads)
+        #print("write array: ", awrites.arraywrites)
+        #print("write tree: ", twrites.treewrites)
+
+        for x in areads.arrayreads:
+            if x != 0 and x > 0:
+                rgx1 = [['t1'],['s1']]
+                rgx2 = [['t1'],['s1']]
+                
+                if 0 in areads.arrayreads and 0 in awrites.arraywrites:
+                    rgx2[0].insert(0, '(r1)*')
+                
+                for _ in range(x):
+                   rgx2[0].insert(0, 'r1') 
+                
+                self.deps.add(WitnessTuple(self.getdim(), self.getdimtype(), self.getalp(), self.getord(), rgx1, rgx2))
+
+    def getdeps(self):
+        ret = []
+        for i, dep in enumerate(self.deps):
+            ret.append((i, dep.regex1, dep.regex2))
+        return ret
 
 if __name__ == "__main__":
     with open("examples/sources/loop-rec.py", "r") as source:
@@ -254,6 +333,7 @@ if __name__ == "__main__":
         print(analyze.getalp())
         print(analyze.getord())
         print(analyze.getindvar())
-        #for f in analyze.codegen():
-        #    print(astunparse.unparse(f))
+        print(analyze.codegen())
+        #print(analyze.cgen())
         analyze.depanalyze()
+        print(analyze.getdeps())

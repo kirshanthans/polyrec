@@ -11,4 +11,4 @@ def f2(i: int, n: Node) -> None:
         return
     f2(i, n.l)
     f2(i, n.r)
-    n.x[i] = n.l.x[i+1] + n.r.x[i+1]
+    n.x[i] = n.x[i+1] + n.x[i+2]
