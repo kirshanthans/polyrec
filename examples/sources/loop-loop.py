@@ -1,6 +1,7 @@
-def work(i: int, j: int) -> None:
+def s(i: int, j: int) -> None:
     pass
 
+# Loop-Nest
 def f1(i: int, j: int) -> None:
     if i >= 10:
         return
@@ -10,7 +11,7 @@ def f1(i: int, j: int) -> None:
 def f2(i: int, j: int) -> None:
     if j >= 10:
         return
-    work(i, j)
+    s(i, j)
     f2(i, j+1)
 
 ## Loop-Skewing
@@ -23,6 +24,6 @@ def f1_(i: int, j: int) -> None:
 def f2_(i: int, j: int) -> None:
     if j-i >= 10:
         return
-    work(i, j-i)
+    s(i, j-i)
     f2_(i, j+1)
     
