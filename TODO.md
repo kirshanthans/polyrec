@@ -31,7 +31,6 @@
 * Integrate C99 parser
 
 ### Visualization
-* Add a C-AST visualization pass
 * Add automata-transducer visualization
 
 
