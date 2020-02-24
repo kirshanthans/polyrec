@@ -9,8 +9,7 @@ import sys
 def main(args):
     parsers = {
         "pyast": generate_pyast,
-        "lib2to3": generate_lib2to3_ast,
-        "jinja2": generate_jinja2_ast,
+        "cast" : generate_cast,
     }
 
     optparser = optparse.OptionParser(usage="astvisualizer.py [options] [string]")
@@ -44,31 +43,6 @@ def main(args):
     renderer.render(code_ast, label=label)
 
 
-def generate_lib2to3_ast(code):
-    from lib2to3.pgen2.driver import Driver
-    from lib2to3.pgen2 import token as pgen2_token
-    from lib2to3.pygram import python_symbols, python_grammar
-    from lib2to3 import pytree
-    from io import StringIO
-
-    token_types = list(python_symbols.__dict__.items())
-    token_types += list(pgen2_token.__dict__.items())
-
-    def transform_ast(ast):
-        transformed = {"node_type": next(n for n, t in token_types if t == ast.type)}
-        if ast.children:
-            transformed["children"] = [transform_ast(child) for child in ast.children]
-        if isinstance(ast, pytree.Leaf):
-            if ast.value != "":
-                transformed["value"] = ast.value
-            if ast._prefix != "":
-                transformed["prefix"] = ast._prefix
-        return transformed
-
-    driver = Driver(python_grammar, convert=pytree.convert)
-    return transform_ast(driver.parse_stream(StringIO(code)))
-
-
 def generate_pyast(code):
     import ast
     def transform_ast(code_ast):
@@ -83,27 +57,24 @@ def generate_pyast(code):
 
     return transform_ast(ast.parse(code))
 
+def generate_cast(code):
+    from pycparser import c_ast, c_parser
 
-def generate_jinja2_ast(code):
-    import jinja2
-
-    def transform_ast(ast):
-        if isinstance(ast, jinja2.nodes.Node):
-            transformed = {k: transform_ast(getattr(ast, k)) for k in ast.fields + ast.attributes if k != "environment"}
-            transformed["node_type"] = ast.__class__.__name__
-            return transformed
-        elif isinstance(ast, list):
-            return [transform_ast(el) for el in ast]
+    def transform_ast(code_ast):
+        if isinstance(code_ast, c_ast.Node):
+            node = {to_camelcase(k): transform_ast(getattr(code_ast, k)) for k in code_ast.__slots__[:-2]}
+            node['node_type'] = to_camelcase(code_ast.__class__.__name__)
+            return node
+        elif isinstance(code_ast, list):
+            return [transform_ast(el) for el in code_ast]
         else:
-            return ast
-
-    env = jinja2.Environment()
-    return transform_ast(env.parse(code))
-
+            return code_ast
+    
+    parser = c_parser.CParser()
+    return transform_ast(parser.parse(code))
 
 def to_camelcase(string):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
-
 
 class GraphRenderer:
     """
