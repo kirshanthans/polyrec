@@ -7,6 +7,7 @@
 * [Witness Tuple Generation](#witness-tuple-generation)
 * [Completion Search](#completion-search)
 * [Code Generation](#code-generation)
+* [Visualization](#visualization)
 
 ### General
 
@@ -28,5 +29,10 @@
 * Analyzing and tagging the AST 
 * Simplifying the AST (constant folding etc.)
 * Integrate C99 parser
+
+### Visualization
+* Add a C-AST visualization pass
+* Add automata-transducer visualization
+
 
          
