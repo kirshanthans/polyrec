@@ -35,8 +35,8 @@ def completion_test(filename):
         partial3 = [['t', 'r', 'r'], ['s', 'r']] # potential cm-ic
 
         xform.analyze.depanalyze()
-        print(xform.analyze.getdeps())
-        
+        print("Witness Tuples: ", xform.analyze.getdeps())
+
         print("\nCompletion 1")
         comp1 = Completion(dim, in_dim_type, in_alp, in_ord, partial1, [Dependence(wt) for wt in xform.analyze.deps])
         comp1.checks()
