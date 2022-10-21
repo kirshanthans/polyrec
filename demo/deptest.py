@@ -137,8 +137,7 @@ def deptest_cm_ic(filename):
         xf = xf1.compose(xf2)
 
         xform.analyze.depanalyze()
-        
-        print(xform.analyze.deps)
+        print(xform.analyze.getdeps())
         for i, wt in enumerate(xform.analyze.deps):
             Dep = Dependence(wt)
             print("Witness Tuple", i, ": ", Dep.test(xf))
