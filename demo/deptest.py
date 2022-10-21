@@ -30,7 +30,7 @@ def deptest_cm(filename):
         in_alp = xform.analyze.getalp()
         in_ord = xform.analyze.getord()
         # Output order
-        out_ord = [['e', 't1', 'r1'], ['e', 's1', 'r2l', 'r2r']]
+        out_ord = [['e', 'r1', 't1'], ['e', 's1', 'r2l', 'r2r']]
 
         xf = Transformation(
             name         ='cm',
@@ -40,6 +40,9 @@ def deptest_cm(filename):
             in_alp       = in_alp,
             in_ord       = in_ord,
             out_ord      = out_ord)
+
+        print("Input Alphabet")
+        print(in_alp)
 
         xform.analyze.depanalyze()
         print(xform.analyze.getdeps())
