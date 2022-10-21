@@ -149,18 +149,18 @@ The ``codegen()`` function returns the source code to current AST held by ASTXfo
 * ``docker build -t polyrec .``
 
 ## Running Demo
-* ``docker run -t polyrec python3 -m demo.representation``
+* ``docker run -v $(pwd):/polyrec -t polyrec python3 -m demo.representation``
 
     Print info about an AST (dimensions, dimension types, order) and generates the code. 
 
-* ``docker run -t polyrec python3 -m demo.transforms <arg>``
+* ``docker run -v $(pwd):/polyrec -t polyrec python3 -m demo.transforms <arg>``
 
     Takes an input order of labels, performs composition of basic transforms and prints out the output order of labels
 
-* ``docker run -t polyrec python3 -m demo.deptest <arg>``
+* ``docker run -v $(pwd):/polyrec -t polyrec python3 -m demo.deptest <arg>``
     
     Constructs a witness tuple from multi-tape regular expressions, create a Dependence object and check whether this dependence is preserved or not by a transformation. 
 
-* ``docker run -t polyrec python3 -m demo.complete``
+* ``docker run -v $(pwd):/polyrec -t polyrec python3 -m demo.complete``
 
     Constructs a completion object with dependence and a partial transformation, prints potential transformations and valid transformations.
